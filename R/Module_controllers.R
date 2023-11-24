@@ -72,7 +72,7 @@ module_protein <- function(input, output, gene_name_list, session) {
     beacons_results <- reactive({
       print("Fetching structures URLs..")
       model_urls <-
-        fetch_summary(uniprot_id()) %>%
+        fetch_3dbeacons_summary(uniprot_id()) %>%
         model_urls_from_summary()
       # Convert alphafold cif to pdb (NGLviewR does not work with cif there)
       alphafold_id <- grep("https://alphafold.ebi.ac.uk/files/", model_urls)
