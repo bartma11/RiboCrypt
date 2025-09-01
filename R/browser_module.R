@@ -13,7 +13,7 @@ getBrowserHashStrings <- function(browserController, dff) {
                         browserController$plotExportFormat,
                         browserController$summaryTrack, browserController$summaryTrackType,
                         browserController$kmer, browserController$framesType, browserController$withFrames,
-                        browserController$useLogScale, browserController$zoomRange, browserController$framesSubset,
+                        browserController$logScale, browserController$zoomRange, browserController$framesSubset,
                         collapse = "|_|")
   hash_expression <- paste(full_names, browserController$selectedTx,
                            browserController$expressionPlot, browserController$extendTrailers,
@@ -24,7 +24,7 @@ getBrowserHashStrings <- function(browserController, dff) {
   return(hash_strings)
 }
 
-getPlotControls <- function(browserController) {
+getBrowserPlotControls <- function(browserController) {
   print("- Browser controller")
   print(paste("here is gene!", browserController$selectedCds))
   print(paste("here is tx!", browserController$selectedTx))
@@ -102,7 +102,7 @@ getPlotControls <- function(browserController) {
                  tx_annotation = tx_annotation,
                  reads = reads,
                  custom_sequence = browserController$customSequence,
-                 log_scale = browserController$useLogScale,
+                 log_scale = browserController$logScale,
                  phyloP = browserController$phyloP,
                  withFrames = withFrames,
                  zoom_range = zoom_range,
@@ -113,8 +113,9 @@ getPlotControls <- function(browserController) {
                  hash_expression = hash_strings[["hash_expression"]])
 }
 
-ui <- function(id, height = "500px") {
+browserUi <- function(id, height = "500px") {
   ns <- NS(id)
+  print(ns("ala_ma_kota_UI"))
   plotlyOutput(ns("plot"), height = height)
 }
 
@@ -145,7 +146,7 @@ ui <- function(id, height = "500px") {
 #' customSequence - ???
 #' viewMode - a string value that describes selected view mode, possible values are "genomic", ???
 #' zoomRange - a numeric value, ???
-#' useLogScale - a boolan switch to turn on/off using log scale
+#' logScale - a boolan switch to turn on/off using log scale
 #' kmer - ???
 #' framesType - ???
 #' framesSubset - ???
@@ -157,22 +158,24 @@ ui <- function(id, height = "500px") {
 #' expressionPlot - ???
 #' @param browserOptions
 #' ???
-server <- function(input, output, session, browserGo, browserController, browserOptions) {
-  mainPlotControls <- reactive({
-    getPlotControls(browserController)
-  }) %>% bindEvent(browserGo,
-                   ignoreInit = check_plot_on_start(browserOptions),
-                   ignoreNULL = TRUE)
-
-  bottom_panel <- reactive(bottom_panel_shiny(mainPlotControls))  %>%
-    bindCache(mainPlotControls()$hash_bottom) %>%
-    bindEvent(mainPlotControls(), ignoreInit = FALSE, ignoreNULL = TRUE)
-
-  browser_plot <- reactive(browser_track_panel_shiny(mainPlotControls, bottom_panel(), session)) %>%
-    bindCache(mainPlotControls()$hash_browser) %>%
-    bindEvent(bottom_panel(), ignoreInit = FALSE, ignoreNULL = TRUE)
-
-  output$plot <- renderPlotly(browser_plot()) %>%
-    bindCache(mainPlotControls()$hash_browser) %>%
-    bindEvent(browser_plot(), ignoreInit = FALSE, ignoreNULL = TRUE)
+browserServer <- function(id, browserGo, browserController, browserOptions) {
+  moduleServer(id, function(input, output, session) {
+    mainPlotControls <- reactive({
+      getBrowserPlotControls(browserController())
+    }) %>% bindEvent(browserGo,
+                     ignoreInit = check_plot_on_start(browserOptions),
+                     ignoreNULL = FALSE)
+    
+    bottom_panel <- reactive(bottom_panel_shiny(mainPlotControls))  %>%
+      bindCache(mainPlotControls()$hash_bottom) %>%
+      bindEvent(mainPlotControls(), ignoreInit = FALSE, ignoreNULL = TRUE)
+    
+    browser_plot <- reactive(browser_track_panel_shiny(mainPlotControls, bottom_panel(), session)) %>%
+      bindCache(mainPlotControls()$hash_browser) %>%
+      bindEvent(bottom_panel(), ignoreInit = FALSE, ignoreNULL = TRUE)
+    
+    output$plot <- renderPlotly(browser_plot()) %>%
+      bindCache(mainPlotControls()$hash_browser) %>%
+      bindEvent(browser_plot(), ignoreInit = FALSE, ignoreNULL = TRUE)
+  })
 }

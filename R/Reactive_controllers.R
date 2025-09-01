@@ -12,7 +12,7 @@ click_plot_browser_main_controller <- function(input, tx, cds, libs, df) {
                                              isolate(input$other_tx))
     cds_annotation <- observed_cds_annotation(isolate(input$tx), cds,
                                               isolate(input$other_tx))
-    uorf_annotation <- observed_uorf_annotation(isolate(input$tx), df,
+    uorf_annotation <- observed_uorf_annotation(isolate(input$tx), df(),
                                                 isolate(input$other_tx), isolate(input$add_uorfs))
     translon_annotation <- observed_translon_annotation(isolate(input$tx), df(),
                                                         isolate(input$other_tx), isolate(input$add_translon))

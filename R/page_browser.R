@@ -13,7 +13,7 @@ browser_ui <- function(id, all_exp, browser_options, gene_names_init,
                                       "floating_settings_panel hidden",
                                       "floating_settings_panel")
   tabPanel(
-    title = "browser", icon = icon("chart-line"),
+    title = "Browser", icon = icon("chart-line"),
     shinyjs::useShinyjs(),
     rclipboardSetup(),
     tags$head(includeHTML(system.file("google_analytics_html", "google_analytics.html", package = "RiboCrypt"))),
@@ -100,7 +100,7 @@ browser_ui <- function(id, all_exp, browser_options, gene_names_init,
     # ---- Full Width Main Panel ----
     fluidRow(
       column(12,
-             jqui_resizable(plotlyOutput(ns("c"), height = "500px")) %>% shinycssloaders::withSpinner(color="#0dc5c1"),
+             jqui_resizable(browserUi(paste0(c(id, "mainBrowser"), collapse = "-"))) %>% shinycssloaders::withSpinner(color="#0dc5c1"),
              plotlyOutput(ns("e"), height = "50px"),
              uiOutput(ns("variableUi")),
              plotlyOutput(ns("d")) %>% shinycssloaders::withSpinner(color="#0dc5c1")
@@ -121,25 +121,63 @@ browser_server <- function(id, all_experiments, env, df, experiments,
       output$clip <- renderUI({clipboard_url_button(input, session)})
 
       # Main plot controller, this code is only run if 'plot' is pressed
-      mainPlotControls <- eventReactive(input$go,
-        click_plot_browser_main_controller(input, tx, cds, libs, df),
-        ignoreInit = check_plot_on_start(browser_options),
-        ignoreNULL = FALSE)
+      # mainPlotControls <- eventReactive(input$go,
+      #   click_plot_browser_main_controller(input, tx, cds, libs, df),
+      #   ignoreInit = check_plot_on_start(browser_options),
+      #   ignoreNULL = FALSE)
+      # 
+      # bottom_panel <- reactive(bottom_panel_shiny(mainPlotControls))  %>%
+      #   bindCache(mainPlotControls()$hash_bottom) %>%
+      #   bindEvent(mainPlotControls(), ignoreInit = FALSE, ignoreNULL = TRUE)
+      # 
+      # browser_plot <- reactive(browser_track_panel_shiny(mainPlotControls, bottom_panel(), session)) %>%
+      #   bindCache(mainPlotControls()$hash_browser) %>%
+      #   bindEvent(bottom_panel(), ignoreInit = FALSE, ignoreNULL = TRUE)
+      # 
+      # output$c <- renderPlotly(browser_plot()) %>%
+      #   bindCache(mainPlotControls()$hash_browser) %>%
+      #   bindEvent(browser_plot(), ignoreInit = FALSE, ignoreNULL = TRUE)
+      
+      browserGo <- reactive(input$go)
+      browserOptions <- browser_options
+      browserController <- reactive({
+        reactiveValues(
+          experiment = df,
+          cds = cds,
+          tx = tx,
+          libraries = libs,
+          selectedCds = input$gene,
+          selectedTx = input$tx,
+          selectedLibrary = input$library,
+          showAllTxAnnotations = input$other_tx,
+          addUORFs = input$add_uorfs,
+          addTranslons = input$add_translon,
+          withFrames = input$withFrames,
+          extendLeaders = input$extendLeaders,
+          extendTrailers = input$extendTrailers,
+          collapsedIntrons = input$collapsed_introns,
+          collapsedIntronsWidth = input$collapsed_introns_width,
+          genomicRegion = input$genomic_region,
+          customSequence = input$customSequence,
+          viewMode = input$viewMode,
+          zoomRange = input$zoom_range,
+          logScale = input$log_scale,
+          kmer = input$kmer,
+          framesType = input$frames_type,
+          framesSubset = input$frames_subset,
+          summaryTrack = input$summary_track,
+          summaryTrackType = input$summary_track_type,
+          plotExportFormat = input$plot_export_format,
+          phyloP = input$phyloP,
+          expressionPlot = input$expression_plot,
+          mapability = input$mapability
+        )
+      })
 
-      bottom_panel <- reactive(bottom_panel_shiny(mainPlotControls))  %>%
-        bindCache(mainPlotControls()$hash_bottom) %>%
-        bindEvent(mainPlotControls(), ignoreInit = FALSE, ignoreNULL = TRUE)
-
-      browser_plot <- reactive(browser_track_panel_shiny(mainPlotControls, bottom_panel(), session)) %>%
-        bindCache(mainPlotControls()$hash_browser) %>%
-        bindEvent(bottom_panel(), ignoreInit = FALSE, ignoreNULL = TRUE)
-
-      output$c <- renderPlotly(browser_plot()) %>%
-        bindCache(mainPlotControls()$hash_browser) %>%
-        bindEvent(browser_plot(), ignoreInit = FALSE, ignoreNULL = TRUE)
+      browserServer("mainBrowser", browserGo, browserController, browserOptions)
 
       # Additional outputs
-      module_additional_browser(input, output, session)
+      # module_additional_browser(input, output, session)
 
       return(rv)
     }

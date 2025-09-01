@@ -115,9 +115,9 @@ anchor_points_shiny <- function(mainPlotControls) {
 observed_uorf_annotation <- function(gene, df, all = TRUE, add_uorfs = FALSE) {
   if (add_uorfs) {
     if (all) {
-      uorfs <- loadRegion(df(), "uorf")
+      uorfs <- loadRegion(df, "uorf")
     } else {
-      uorfs <- loadRegion(df(), "uorf", names.keep = gene)
+      uorfs <- loadRegion(df, "uorf", names.keep = gene)
     }
     if (length(uorfs) > 0) names(uorfs) <- paste0("U", seq(length(uorfs)))
     uorfs
