@@ -82,9 +82,17 @@ getBrowserPlotControls <- function(browserController) {
     reads <- filepath(dff, "bigwig", suffix_stem = c("_pshifted", ""),
                       base_folders = libFolder(dff, "all"))
   }
+  
   frames_subset <- browserController$framesSubset
   use_all_frames <- length(frames_subset) == 0 || any(c("","all") %in% frames_subset)
   if (use_all_frames) frames_subset <- "all"
+  
+  try_collection_path <- try(collection_path_from_exp(browserController$experiment(), browserController$selectedTx))
+  if(is(try_collection_path, "try-error")) {
+    collection_path <- NULL
+  } else {
+    collection_path <- try_collection_path
+  }
   
   reactiveValues(dff = dff,
                  display_region = display_region,
@@ -101,6 +109,8 @@ getBrowserPlotControls <- function(browserController) {
                  annotation = cds_annotation,
                  tx_annotation = tx_annotation,
                  reads = reads,
+                 collection_path = collection_path,
+                 selected_samples = "",
                  custom_sequence = browserController$customSequence,
                  log_scale = browserController$logScale,
                  phyloP = browserController$phyloP,
@@ -115,7 +125,6 @@ getBrowserPlotControls <- function(browserController) {
 
 browserUi <- function(id, height = "500px") {
   ns <- NS(id)
-  print(ns("ala_ma_kota_UI"))
   plotlyOutput(ns("plot"), height = height)
 }
 
@@ -162,7 +171,7 @@ browserServer <- function(id, browserGo, browserController, browserOptions) {
   moduleServer(id, function(input, output, session) {
     mainPlotControls <- reactive({
       getBrowserPlotControls(browserController())
-    }) %>% bindEvent(browserGo,
+    }) %>% bindEvent(browserGo(),
                      ignoreInit = check_plot_on_start(browserOptions),
                      ignoreNULL = FALSE)
     

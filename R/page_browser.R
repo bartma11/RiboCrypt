@@ -13,7 +13,7 @@ browser_ui <- function(id, all_exp, browser_options, gene_names_init,
                                       "floating_settings_panel hidden",
                                       "floating_settings_panel")
   tabPanel(
-    title = "Browser", icon = icon("chart-line"),
+    title = "browser", icon = icon("chart-line"),
     shinyjs::useShinyjs(),
     rclipboardSetup(),
     tags$head(includeHTML(system.file("google_analytics_html", "google_analytics.html", package = "RiboCrypt"))),
@@ -175,6 +175,11 @@ browser_server <- function(id, all_experiments, env, df, experiments,
       })
 
       browserServer("mainBrowser", browserGo, browserController, browserOptions)
+      
+      observeEvent(input$toggle_settings, {
+        # Toggle visibility by adding/removing 'hidden' class
+        shinyjs::toggleClass(id = "floating_settings", class = "hidden")
+      })
 
       # Additional outputs
       # module_additional_browser(input, output, session)

@@ -67,6 +67,8 @@ umap_server <- function(id, metadata, all_exp_meta, browser_options) {
       
       output$sampleGroup1Ui <- setupSampleGroup("1", metadata, input, output)
       output$sampleGroup2Ui <- setupSampleGroup("2", metadata, input, output)
+      
+      print(all_exp_meta)
 
 
       check_url_for_basic_parameters()
@@ -125,6 +127,10 @@ setupSampleGroup <- function(selectionId, metadata, input, output, session = get
   withIdAndNamespace <- function(s) { withId(s) %>% withNamespace }
   selectedSamples <- reactiveVal()
   
+  getSelectedRows <- function(input) {
+    input[[paste0(withId("samplesTable"), "_rows_selected")]]
+  }
+  
   observe({
     req(input$selectedPoints)
     req(is.null(selectedSamples()))
@@ -138,8 +144,7 @@ setupSampleGroup <- function(selectionId, metadata, input, output, session = get
   
   observe({
     req(!is.null(selectedSamples()))
-    indexesToRemove <- input[[paste0(withId("samplesTable"), "_rows_selected")]]
-    samplesToRemove <- tableData()[indexesToRemove][["Sample"]]
+    samplesToRemove <- tableData()[getSelectedRows(input)][["Sample"]]
     currentSelection <- selectedSamples()
     selectedSamples(currentSelection[!currentSelection %in% samplesToRemove])
   }) %>% bindEvent(input[[withId("removeSelected")]])
@@ -161,7 +166,8 @@ setupSampleGroup <- function(selectionId, metadata, input, output, session = get
         ,
         column(2, 
                actionButton(withIdAndNamespace("clearSelection"), "Clear"),
-               actionButton(withIdAndNamespace("removeSelected"), "Remove")
+               actionButton(withIdAndNamespace("removeSelected"), "Remove"),
+               actionButton(withIdAndNamespace("goToBrowser"), "See in Browser")
                )
       )
     }

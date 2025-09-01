@@ -1,0 +1,512 @@
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+devtools::load_all(".")
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+library(stringr)
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+?DT:updateFilters
+?DT::updateFilters
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+?DT::dataTableProxy
+devtools::load_all(".")
+?DT::dataTableProxy
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+?DT::dataTableProxy
+?DT::dataTableProxy
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+xfun::session_info('DT')
+?DT::selectRows
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+?DT::coerceValue
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+devtools::load_all(".")
+require("RiboCrypt"); require(data.table);
+all_exp <- list.experiments(validate=F, BPPARAM=BiocParallel::SerialParam(), dir = "~/livemount/Bio_data/ORFik_experiments_local")
+valid_collections <- c("all_samples-Homo_sapiens")
+m <- fread("~/livemount/Bio_data/NGS_pipeline/metadata_rc.csv")
+m <- m[, !(colnames(m) %in% c("BioProject", "BioSample", "Study_Pubmed_id", "name")), with = F]
+all_exp <- all_exp[name %in% c(grep("all_samples-", name, invert = TRUE, value = TRUE), valid_collections),]
+RiboCrypt_app(FALSE, all_exp = all_exp, metadata = m, browser_options = c(default_experiment = "all_merged-Homo_sapiens", default_gene = "ATF4-ENSG00000128272", default_gene_meta = "ATF4-ENSG00000128272",default_kmer = 9, default_frame_type = "area", plot_on_start = TRUE))
+gc()
+all_exp
+all_exp$name
+all_exp$organism
+unique.array(all_exp$organism)
+typeof(all_exp$organism)
+all_exp$organism
+unique(all_exp$organism)
+availableOrganisms <- unique.default(all_exp$organism)
+availableOrganisms
+experimentNames <- all_exp$name
+experimentNames
+experimentNames[grepl("^m.all_samples*")]
+experimentNames[grepl("^m.all_samples*", experimentNames)]
+experimentNames[grepl("^m.all*", experimentNames)]
+defaultExperiment <- "all_samples-Homo_sapiens"
+defaultExperimentName <- "all_samples-Homo_sapiens"
+all_exp[all_exp$name == defaultExperiment]
+all_exp[all_exp$name == defaultExperiment]
+defaultExperiment <- all_exp[all_exp$name == defaultExperiment]
+defaultExperiment
+loadRegion(defaultExperiment)
+selectedExperiment <- get_exp(defaultExperimentName, all_exp$name, .GlobalEnv, ORFik::config()["exp"])
+selectedExperiment
+loadRegion(selectedExperiment)
+tx <- loadRegion(selectedExperiment)
+cds <- loadRegion(selectedExperiment, "cds")
+cds
+all_exp
+all_exp[organism == "Homo sapiens"]
+View(m)
+devtools::load_all(".")
+selectedCollectionPath <- collection_path_from_exp(selectedExperiment, )
+tx[1]
+tx[1]$ENST00000456328
+names(tx[1])
+selectedTx <- names(tx[1])
+selectedCollectionPath <- collection_path_from_exp(selectedExperiment, selectedTx)
+selectedCollectionPath
+selectedCollection <- load_collection(selectedCollectionPath)
+selectedCollection
+View(m)
+typeof(selectedCollection)
+selectedCollection$count
+selectedCollectionLibrarySizes <- lib_sizes <- file.path(QCfolder(selectedExperiment), "totalCounts_mrna.rds")
+selectedCollectionLibrarySizes
+selectedCollection$library
+selectedCollection$count
+selectedCollection$position
+cds[1]
+tx$ENST00000456328
+geneNames <- get_gene_name_categories
+devtools::load_all(".")
+geneNames <- get_gene_name_categories(selectedExperiment)
+geneNames
+geneNames$value
+geneNames$label
+geneNames$value
+geneNames
+geneNames[,2][[1]]
+geneNames[,2]
+geneNames[,2][[1]]
+names(tx)
+savehistory("~/RiboCrypt/project_exploration.txt")

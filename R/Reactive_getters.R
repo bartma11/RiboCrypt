@@ -112,6 +112,7 @@ custom_seq_track_panel_bigwig <- function(grl, bigwig_path, ylab) {
 
 browser_track_panel_shiny <- function(mainPlotControls, bottom_panel, session,
                                       reads = mainPlotControls()$reads,
+                                      collection_path = mainPlotControls()$collection_path,
                                       withFrames = mainPlotControls()$withFrames,
                                       viewMode = ifelse(mainPlotControls()$viewMode, "genomic","tx"),
                                       frames_type = mainPlotControls()$frames_type,
@@ -136,7 +137,7 @@ browser_track_panel_shiny <- function(mainPlotControls, bottom_panel, session,
   # Input controller
   multiOmicsControllerView()
   # Get NGS data track panels
-  profiles <- multiOmicsPlot_all_profiles(bottom_panel$display_range, reads, kmers,
+  profiles <- multiOmicsPlot_all_profiles(bottom_panel$display_range, reads, collection_path, kmers,
                                           kmers_type, frames_type, frames_subset,
                                           withFrames, log_scale, BPPARAM)
   track_panel <- multiOmicsPlot_all_track_plots(profiles, withFrames, colors, ylabels,
