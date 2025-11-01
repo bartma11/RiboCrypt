@@ -112,14 +112,14 @@ RiboCrypt_app <- function(
     cds <- NULL
     org_and_study_changed_checker(input, output, session)
     tutorial_server("tutorial")
-    rv <- browser_server("browser", all_exp, without_readlengths_env, df,
+    browser_server("browser", all_exp, without_readlengths_env, df,
                          experiments, tx, cds, libs, org, gene_name_list, rv,
                          browser_options)
     if (nrow(all_exp_meta) > 0) {
       browser_allsamp_server("browser_allsamp", all_exp_meta, df_meta, metadata,
                              names_init_meta, browser_options)
     } else print("No MegaBrowser exps given, ignoring MegaBrowser server.")
-    rv <- analysis_server("Analysis", all_exp, without_readlengths_env,
+    analysis_server("Analysis", all_exp, without_readlengths_env,
             with_readlengths_env, df, df_with, experiments, tx, cds, libs, org,
             gene_name_list, rv, metadata, names_init, browser_options)
     metadata_server("metadata", all_exp, metadata, all_exp_meta, browser_options)

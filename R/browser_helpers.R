@@ -54,7 +54,7 @@ multiOmicsPlot_all_track_plots <- function(profiles, withFrames, colors, ylabels
   return(list(plots = plots, nplots = nplots))
 }
 
-multiOmicsPlot_all_profiles <- function(display_range, reads, kmers,
+multiOmicsPlot_all_profiles <- function(display_range, reads, collection_path, kmers,
                                         kmers_type, frames_type, frames_subset,
                                         withFrames, log_scale, BPPARAM) {
   force(display_range)
@@ -66,13 +66,13 @@ multiOmicsPlot_all_profiles <- function(display_range, reads, kmers,
   force(log_scale)
   force(frames_subset)
   if (is(BPPARAM, "SerialParam")) {
-    profiles <- mapply(function(x,y,c,l) getProfileWrapper(display_range, x, y, c, l, kmers_type,
+    profiles <- mapply(function(x,y,z,c,l) getProfileWrapper(display_range, x, y, z, c, l, kmers_type,
                                                            type = frames_type, frames_subset = frames_subset),
-                       reads, withFrames, kmers, log_scale, SIMPLIFY = FALSE)
+                       reads, collection_path, withFrames, kmers, log_scale, SIMPLIFY = FALSE)
   } else {
-    profiles <- bpmapply(function(x,y,c,l) getProfileWrapper(display_range, x,y,c,l, kmers_type,
+    profiles <- bpmapply(function(x,y,z,c,l) getProfileWrapper(display_range, x,y,z,c,l, kmers_type,
                                                              type = frames_type, frames_subset = frames_subset),
-                         reads, withFrames, kmers, log_scale, SIMPLIFY = FALSE,
+                         reads, collection_path, withFrames, kmers, log_scale, SIMPLIFY = FALSE,
                          BPPARAM = BPPARAM)
   }
   return(profiles)
@@ -165,7 +165,7 @@ multiOmicsPlot_internal <- function(display_range, df, annotation = "cds", refer
   multiOmicsControllerView()
 
   # Get NGS data track panels
-  profiles <- multiOmicsPlot_all_profiles(display_range, reads, kmers,
+  profiles <- multiOmicsPlot_all_profiles(display_range, reads, NULL, kmers,
                                           kmers_type, frames_type, frames_subset,
                                           withFrames, log_scale, BPPARAM)
 

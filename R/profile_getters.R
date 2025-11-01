@@ -79,9 +79,27 @@ getCoverageProfile <- function(grl, reads, kmers = 1, kmers_type = "mean") {
   return(coverage)
 }
 
-getProfileWrapper <- function(display_range, reads, withFrames, kmers = 1, log_scale = FALSE,
+getProfileWrapper <- function(display_range, reads, collection_path, withFrames, kmers = 1, log_scale = FALSE,
                               kmers_type = "mean", type = "lines", frames_subset = "all") {
-
+  if(is.null(collection_path)) {
+    # if (withFrames) {
+    #   profile <- getRiboProfile(display_range, reads, kmers, kmers_type = kmers_type)
+    #   if (all(frames_subset != "all")) {
+    #     color_options <- c("red", "green", "blue")
+    #     frame_to_use <- which(color_options %in% frames_subset) - 1
+    #     profile <- profile[!(frame %in% frame_to_use), count := 0]
+    #   }
+    # } else {
+    #   profile <- getCoverageProfile(display_range, reads, kmers, kmers_type = kmers_type)
+    # }
+  }
+  else {
+    names(collection_path) <- "index"
+    collection_profile <- load_collection(collection_path, display_range, format = "wide")
+    print(1)
+    print(collection_profile[["SRR14421803"]])
+  }
+  
   if (withFrames) {
     profile <- getRiboProfile(display_range, reads, kmers, kmers_type = kmers_type)
     if (all(frames_subset != "all")) {
@@ -93,6 +111,10 @@ getProfileWrapper <- function(display_range, reads, withFrames, kmers = 1, log_s
     profile <- getCoverageProfile(display_range, reads, kmers, kmers_type = kmers_type)
   }
   if (log_scale) profile[, count := log2(count + 1)]
+  
+  print(2)
+  print(profile)
+  
   return(profile)
 }
 

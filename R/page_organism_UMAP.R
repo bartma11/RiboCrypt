@@ -13,12 +13,22 @@ umap_ui <- function(id, all_exp_translons, label = "umap") {
     tags$hr(),
     fluidRow(
       plotlyOutput(ns("c"), height = "700px") %>% shinycssloaders::withSpinner(color="#0dc5c1")
+    ),
+    tabsetPanel(
+      tabPanel("Sample group 1",
+               fluidRow(
+                 uiOutput(ns("sampleGroup1Ui"))
+               )),
+      tabPanel("Sample group 2",
+               fluidRow(
+                 uiOutput(ns("sampleGroup2Ui"))
+               )),
     )
   )
 }
 
 
-umap_server <- function(id, all_exp_meta, browser_options) {
+umap_server <- function(id, metadata, all_exp_meta, browser_options) {
   moduleServer(
     id,
     function(input, output, session) {
@@ -39,14 +49,27 @@ umap_server <- function(id, all_exp_meta, browser_options) {
       })
 
       # Render DT Table ONLY if "Plot" was clicked
-      output$c <- renderPlotly({
-        req(plot_triggered())
-        if (isolate(input$umap_plot_type) == "UMAP") {
-          umap_plot(isolate(md()$dt_umap))
-        } else umap_centroids_plot(isolate(md()$dt_umap))
+      output$c <- {
+        renderPlotly({
+          generated_plot <- {
+            req(plot_triggered())
+            if (isolate(input$umap_plot_type) == "UMAP") {
+              umap_plot(isolate(md()$dt_umap))
+            } else umap_centroids_plot(isolate(md()$dt_umap))
+          }
+          
+          
+          onRender(generated_plot, fetchJS("handle_lasso_selection.js"), NS(id, "selectedPoints"))
         }) %>%
         bindCache(input$dff, input$umap_col, input$umap_plot_type) %>%
         bindEvent(input$go, ignoreInit = FALSE, ignoreNULL = TRUE)
+      }
+      
+      output$sampleGroup1Ui <- setupSampleGroup("1", metadata, input, output)
+      output$sampleGroup2Ui <- setupSampleGroup("2", metadata, input, output)
+      
+      print(all_exp_meta)
+
 
       check_url_for_basic_parameters()
     }
@@ -95,4 +118,59 @@ umap_centroids_plot <- function(dt_umap) {
       xaxis = list(title = "Group 2", tickangle = 45),
       yaxis = list(title = "Group 1", autorange = "reversed")
     )
+}
+
+setupSampleGroup <- function(selectionId, metadata, input, output, session = getDefaultReactiveDomain(
+)) {
+  withNamespace <- session$ns
+  withId <- function(s) { paste0(s, selectionId) }
+  withIdAndNamespace <- function(s) { withId(s) %>% withNamespace }
+  selectedSamples <- reactiveVal()
+  
+  getSelectedRows <- function(input) {
+    input[[paste0(withId("samplesTable"), "_rows_selected")]]
+  }
+  
+  observe({
+    req(input$selectedPoints)
+    req(is.null(selectedSamples()))
+    selectedSamples(input$selectedPoints)
+  }) %>% bindEvent(input[[withId("saveAsGroup")]])
+  
+  observe({
+    req(!is.null(selectedSamples()))
+    selectedSamples(NULL)
+  }) %>% bindEvent(input[[withId("clearSelection")]])
+  
+  observe({
+    req(!is.null(selectedSamples()))
+    samplesToRemove <- tableData()[getSelectedRows(input)][["Sample"]]
+    currentSelection <- selectedSamples()
+    selectedSamples(currentSelection[!currentSelection %in% samplesToRemove])
+  }) %>% bindEvent(input[[withId("removeSelected")]])
+  
+  tableData <- reactive({
+    req(!is.null(selectedSamples()))
+    metadata[Sample %in% selectedSamples()]
+  })
+  
+  output[[withId("samplesTable")]] <-
+    DT::renderDT(tableData(), filter = "top", options = list(dom = 'Bfrtip'))
+  
+  renderUI({
+    if (is.null(selectedSamples())) {
+      actionButton(withIdAndNamespace("saveAsGroup"), "Save selection")
+    } else {
+      fluidRow(
+        column(10, DT::DTOutput(withIdAndNamespace("samplesTable")))
+        ,
+        column(2, 
+               actionButton(withIdAndNamespace("clearSelection"), "Clear"),
+               actionButton(withIdAndNamespace("removeSelected"), "Remove"),
+               actionButton(withIdAndNamespace("goToBrowser"), "See in Browser")
+               )
+      )
+    }
+  })
+  
 }
