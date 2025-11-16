@@ -26,6 +26,7 @@ multiOmicsPlot_all_track_plots <- function(profiles, withFrames, colors, ylabels
                                            summary_track, summary_track_type,
                                            BPPARAM) {
   total_libs <- length(profiles)
+  
   force(colors)
   force(lines)
   force(ylabels)
@@ -56,7 +57,7 @@ multiOmicsPlot_all_track_plots <- function(profiles, withFrames, colors, ylabels
 
 multiOmicsPlot_all_profiles <- function(display_range, reads, kmers,
                                         kmers_type, frames_type, frames_subset,
-                                        withFrames, log_scale, BPPARAM) {
+                                        withFrames, log_scale, BPPARAM, normalization) {
   force(display_range)
   force(reads)
   force(kmers)
@@ -65,13 +66,15 @@ multiOmicsPlot_all_profiles <- function(display_range, reads, kmers,
   force(withFrames)
   force(log_scale)
   force(frames_subset)
+
+  
   if (is(BPPARAM, "SerialParam")) {
     profiles <- mapply(function(x,y,c,l) getProfileWrapper(display_range, x, y, c, l, kmers_type,
-                                                           type = frames_type, frames_subset = frames_subset),
+                                                           type = frames_type, frames_subset = frames_subset, normalization = normalization),
                        reads, withFrames, kmers, log_scale, SIMPLIFY = FALSE)
   } else {
     profiles <- bpmapply(function(x,y,c,l) getProfileWrapper(display_range, x,y,c,l, kmers_type,
-                                                             type = frames_type, frames_subset = frames_subset),
+                                                             type = frames_type, frames_subset = frames_subset, normalization = normalization),
                          reads, withFrames, kmers, log_scale, SIMPLIFY = FALSE,
                          BPPARAM = BPPARAM)
   }
@@ -155,7 +158,7 @@ multiOmicsPlot_internal <- function(display_range, df, annotation = "cds", refer
                                     annotation_names = NULL, start_codons = "ATG", stop_codons = c("TAA", "TAG", "TGA"),
                                     custom_motif = NULL, log_scale = FALSE, BPPARAM = BiocParallel::SerialParam(),
                                     input_id = "", summary_track = FALSE,
-                                    summary_track_type = frames_type, export.format = "svg", frames_subset = "all") {
+                                    summary_track_type = frames_type, export.format = "svg", frames_subset = "all", normalization = normalizations("metabrowser")[1]) {
 
   multiOmicsController()
   # Get Bottom annotation and sequence panels
@@ -167,7 +170,7 @@ multiOmicsPlot_internal <- function(display_range, df, annotation = "cds", refer
   # Get NGS data track panels
   profiles <- multiOmicsPlot_all_profiles(display_range, reads, kmers,
                                           kmers_type, frames_type, frames_subset,
-                                          withFrames, log_scale, BPPARAM)
+                                          withFrames, log_scale, BPPARAM, normalization)
 
   track_panel <- multiOmicsPlot_all_track_plots(profiles, withFrames, colors, ylabels,
                                           ylabels_full_name, bottom_panel$lines,
@@ -282,26 +285,50 @@ browser_plots_highlighted <- function(plots, zoom_range, color = "rgba(255, 255,
   return(plots)
 }
 
-hash_strings_browser <- function(input, dff, ciw = input$collapsed_introns_width) {
+hash_strings_browser <- function(
+    dff,
+    selectedTx, 
+    otherTx, 
+    addUorfs,
+    addTranslons,
+    collapsedIntronsWidth,
+    genomicRegion,
+    extendLeaders,
+    extendTrailers,
+    zoomRange,
+    viewMode,
+    withFrames,
+    exportFormat,
+    summaryTrack,
+    summaryTrackType,
+    kmer,
+    framesType,
+    framesSubset,
+    customSequence,
+    logScale,
+    phyloP,
+    mapability,
+    expressionPlot
+    ) {
   full_names <- ORFik:::name_decider(dff, naming = "full")
-  hash_bottom <- paste(input$tx, input$other_tx,
-                       input$add_uorfs,  input$add_translon,
-                       input$extendTrailers, input$extendLeaders,
-                       input$genomic_region, input$viewMode,
-                       ciw,
-                       input$customSequence, input$phyloP, input$mapability,
+  hash_bottom <- paste(selectedTx, otherTx,
+                       addUorfs,  addTranslons,
+                       extendTrailers, extendLeaders,
+                       genomicRegion, viewMode,
+                       collapsedIntronsWidth,
+                       customSequence, phyloP, mapability,
                        collapse = "|_|")
   # Until plot and coverage is split (bottom must be part of browser hash)
   hash_browser <- paste(hash_bottom,
                         full_names,
-                        input$plot_export_format,
-                        input$summary_track, input$summary_track_type,
-                        input$kmer, input$frames_type, input$withFrames,
-                        input$log_scale, input$zoom_range, input$frames_subset,
+                        exportFormat,
+                        summaryTrack, summaryTrackType,
+                        kmer, framesType, withFrames,
+                        logScale, zoomRange, framesSubset,
                         collapse = "|_|")
-  hash_expression <- paste(full_names, input$tx,
-                           input$expression_plot, input$extendTrailers,
-                           input$extendLeaders, collapse = "|_|")
+  hash_expression <- paste(full_names, selectedTx,
+                           expressionPlot, extendTrailers,
+                           extendLeaders, collapse = "|_|")
   hash_strings <- list(hash_bottom = hash_bottom, hash_browser = hash_browser,
                        hash_expression = hash_expression)
   stopifnot(all(lengths(hash_strings) == 1))

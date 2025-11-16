@@ -4,24 +4,37 @@ umap_ui <- function(id, all_exp_translons, label = "umap") {
     title = "UMAP", icon = icon("rectangle-list"),
     h2("UMAP from count tables of all samples of all genes in organism"),
     # Include shinyjs so we can trigger hidden buttons
-    fluidRow(
-      column(2, umap_plot_type(ns)),
-      column(2, experiment_input_select(all_exp_translons$name, ns)),
-      column(2, umap_color_by_input_select(ns)),
-      column(1, plot_button(ns("go")))
-    ),
     tags$hr(),
-    fluidRow(
-      plotlyOutput(ns("c"), height = "700px") %>% shinycssloaders::withSpinner(color="#0dc5c1")
-    )
+    tabsetPanel(
+      tabPanel(
+        "UMAP plot",
+        fluidRow(
+          column(2, umap_plot_type(ns)),
+          column(2, experiment_input_select(all_exp_translons$name, ns)),
+          column(2, umap_color_by_input_select(ns)),
+          column(1, plot_button(ns("go")))
+        ),
+        fluidRow(
+          plotlyOutput(ns("c"), height = "700px")
+          %>% shinycssloaders::withSpinner(color = "#0dc5c1")
+        ),
+        sampleSelectionsUi(ns("sampleSelection")),
+        sampleTableUi(ns("sampleTable"))
+      ),
+      tabPanel(
+        "Browser",
+        fluidRow()
+      )
+    ),
   )
 }
 
 
-umap_server <- function(id, all_exp_meta, browser_options) {
+umap_server <- function(id, metadata, all_exp_meta) {
   moduleServer(
     id,
     function(input, output, session) {
+      ns <- session$ns
       plot_triggered <- reactiveVal(FALSE)
       md <- reactiveVal(NULL)
       default <- "all_samples-Homo_sapiens"
@@ -39,14 +52,42 @@ umap_server <- function(id, all_exp_meta, browser_options) {
       })
 
       # Render DT Table ONLY if "Plot" was clicked
-      output$c <- renderPlotly({
-        req(plot_triggered())
-        if (isolate(input$umap_plot_type) == "UMAP") {
-          umap_plot(isolate(md()$dt_umap))
-        } else umap_centroids_plot(isolate(md()$dt_umap))
+      output$c <- {
+        renderPlotly({
+          generated_plot <- {
+            req(plot_triggered())
+            if (isolate(input$umap_plot_type) == "UMAP") {
+              umap_plot(isolate(md()$dt_umap))
+            } else {
+              umap_centroids_plot(isolate(md()$dt_umap))
+            }
+          }
+          onRender(generated_plot, fetchJS("umap_plot_extension.js"), ns("selectedPoints"))
         }) %>%
-        bindCache(input$dff, input$umap_col, input$umap_plot_type) %>%
-        bindEvent(input$go, ignoreInit = FALSE, ignoreNULL = TRUE)
+          bindCache(input$dff, input$umap_col, input$umap_plot_type) %>%
+          bindEvent(input$go, ignoreInit = FALSE, ignoreNULL = TRUE)
+      }
+
+      rSelection <- shiny::reactiveVal(NULL)
+      rFilteredSelection <- shiny::reactiveVal(NULL)
+
+      shiny::observe({
+        rSelection(input$selectedPoints)
+      }) %>% shiny::bindEvent(input$selectedPoints)
+
+      sampleTableServer(
+        "sampleTable",
+        metadata,
+        rSelection,
+        rFilteredSelection
+      )
+
+      sampleSelectionsServer(
+        "sampleSelection",
+        metadata,
+        rSelection,
+        rFilteredSelection
+      )
 
       check_url_for_basic_parameters()
     }
@@ -59,11 +100,13 @@ umap_plot <- function(dt_umap, color.by = attr(dt_umap, "color.by")) {
   color.by <- color.by.temp
 
   gg <- ggplot(dt_umap, aes(x = `UMAP 1`, y = `UMAP 2`, color = color_column)) +
-    geom_point() + cowplot::theme_cowplot() + scale_fill_viridis_b() +
+    geom_point() +
+    cowplot::theme_cowplot() +
+    scale_fill_viridis_b() +
     labs(color = names(color.by))
   text_aes <- aes(text = paste0(
     "Bioproject ", dt_umap$BioProject, "\n",
-    "Run ID: ",dt_umap$sample, "\n",
+    "Run ID: ", dt_umap$sample, "\n",
     "Author: ", dt_umap$author, "\n",
     "Inhibitor: ", dt_umap$inhibitors, "\n",
     "Tissue | CellLine: ", dt_umap$tissues_cell_lines

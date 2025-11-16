@@ -10,6 +10,7 @@ browser_ui <- function(id, all_exp, browser_options, gene_names_init,
   introns_width <- as.numeric(browser_options["collapsed_introns_width"])
   full_annotation <- as.logical(browser_options["full_annotation"])
   translons <- as.logical(browser_options["translons"])
+  normalizations <- normalizations("metabrowser")
   panel_hidden_or_not_class <- ifelse(browser_options["hide_settings"] == "TRUE",
                                       "floating_settings_panel hidden",
                                       "floating_settings_panel")
@@ -45,6 +46,10 @@ browser_ui <- function(id, all_exp, browser_options, gene_names_init,
                          column(6, frame_type_select(ns, selected = browser_options["default_frame_type"])),
                          column(6, sliderInput(ns("kmer"), "K-mer length", min = 1, max = 20,
                                                value = as.numeric(browser_options["default_kmer"])))
+                       ),
+                       fluidRow(
+                         column(6, normalization_input_select(ns, choices = normalizations,
+                                                              help_link = "mbrowser"))
                        )
               ),
               tabPanel("Settings",
@@ -122,10 +127,40 @@ browser_server <- function(id, all_experiments, env, df, experiments,
       output$clip <- renderUI({clipboard_url_button(input, session)})
 
       # Main plot controller, this code is only run if 'plot' is pressed
-      mainPlotControls <- eventReactive(input$go,
-        click_plot_browser_main_controller(input, tx, cds, libs, df),
-        ignoreInit = check_plot_on_start(browser_options),
-        ignoreNULL = FALSE)
+      mainPlotControls <- reactive({
+        click_plot_browser_main_controller(
+          tx, 
+          cds, 
+          libs, 
+          df,
+          selectedGene = input$gene, 
+          selectedTx = input$tx, 
+          otherTx = input$other_tx, 
+          addUorfs = input$add_uorfs,
+          addTranslons = input$add_translon,
+          collapsedIntrons = input$collapsed_introns,
+          collapsedIntronsWidth = input$collapsed_introns_width,
+          genomicRegion = input$genomic_region,
+          extendLeaders = input$extendLeaders,
+          extendTrailers = input$extendTrailers,
+          zoomRange = input$zoom_range,
+          viewMode = input$viewMode,
+          selectedLibraries = input$library,
+          withFrames = input$withFrames,
+          exportFormat = input$plot_export_format,
+          summaryTrack = input$summary_track,
+          summaryTrackType = input$summary_track_type,
+          kmer = input$kmer,
+          framesType = input$frames_type,
+          framesSubset = input$frames_subset,
+          normalization = input$normalization,
+          customSequence = input$customSequence,
+          logScale = input$log_scale,
+          phyloP = input$phyloP,
+          mapability = input$mapability,
+          expressionPlot = input$expression_plot
+          )
+        }) %>% bindEvent(input$go, ignoreInit = check_plot_on_start(browser_options), ignoreNULL = FALSE)
 
       bottom_panel <- reactive(bottom_panel_shiny(mainPlotControls))  %>%
         bindCache(mainPlotControls()$hash_bottom) %>%
