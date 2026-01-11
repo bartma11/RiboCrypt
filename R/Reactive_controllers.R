@@ -184,40 +184,67 @@ click_plot_browser_main_controller <- function(
     selectedSamples = selectedSamples
   ) }}
 
-click_plot_browser_allsamp_controller <- function(input, df, gene_name_list) {{ shinyjs::toggleClass(id = "floating_settings", class = "hidden", condition = TRUE)
-  print(paste("Gene (Megabrowser):", isolate(input$gene)))
-  print(paste("Tx (Megabrowser):", isolate(input$tx)))
-  id <- isolate(input$tx)
+click_plot_browser_allsamp_controller <- function(
+  df,
+  gene_name_list,
+  selectedGene,
+  selectedTx,
+  regionType,
+  motif = NULL,
+  extendLeaders = NULL,
+  extendTrailers = NULL,
+  displayAnnot,
+  viewMode,
+  otherTx,
+  collapsedIntrons,
+  collapsedIntronsWidth,
+  genomicRegion,
+  clusters,
+  ratioInterval = NULL,
+  metadata,
+  otherGene = NULL,
+  enrichmentTerm,
+  normalization,
+  kmer,
+  minCount = NULL,
+  frame,
+  summaryTrack,
+  plotType,
+  heatmapColor,
+  colorMult
+) {{ shinyjs::toggleClass(id = "floating_settings", class = "hidden", condition = TRUE)
+  print(paste("Gene (Megabrowser):", selectedGene))
+  print(paste("Tx (Megabrowser):", selectedTx))
+  id <- selectedTx
   if (id == "") stop("Emptry transcript isoforom given!")
 
-  region_type <- isolate(input$region_type)
+  region_type <- regionType
   dff <- df()
-  motif <- isolate(input$motif)
-  leader_extension <- isolate(input$extendLeaders)
-  trailer_extension <- isolate(input$extendTrailers)
-  display_annot <- isolate(input$display_annot)
-  viewMode <- isolate(input$viewMode)
+  leader_extension <- extendLeaders
+  trailer_extension <- extendTrailers
+  display_annot <- displayAnnot
+
   annotation_list <- subset_tx_by_region(dff, id, region_type)
   tx_annotation <- display_region <- annotation_list$region
 
   cds_annotation <- observed_cds_annotation_internal(
     id,
     annotation_list$cds_annotation,
-    isolate(input$other_tx)
+    otherTx
   )
   if (!is.null(motif) && motif != "") {
     table_path <- meta_motif_files(dff)[motif]
     display_annot <- FALSE
     message("Using motif: ", table_path)
   } else {
-    collapsed_introns_width <- input$collapsed_introns_width
-    if (!input$collapsed_introns) collapsed_introns_width <- 0
+    collapsed_introns_width <- collapsedIntronsWidth
+    if (!collapsedIntrons) collapsed_introns_width <- 0
     if (collapsed_introns_width > 0) {
       tx_annotation <- tx_annotation[tx_annotation %over% flankPerGroup(display_region)]
       display_region_gr <- reduce(unlistGrl(tx_annotation))
       display_region <- groupGRangesBy(display_region_gr, rep(names(display_region), length(display_region_gr)))
     }
-    display_region <- genomic_string_to_grl(isolate(input$genomic_region), display_region,
+    display_region <- genomic_string_to_grl(genomicRegion, display_region,
       max_size = 1e6, viewMode,
       leader_extension, trailer_extension,
       collapsed_introns_width
@@ -232,7 +259,7 @@ click_plot_browser_allsamp_controller <- function(input, df, gene_name_list) {{ 
       display_region <- extendTrailers(display_region, trailer_extension)
     }
 
-    table_path <- collection_path_from_exp(dff, id, isolate(gene_name_list()),
+    table_path <- collection_path_from_exp(dff, id, gene_name_list(),
       grl_all = display_region
     )
   }
@@ -244,14 +271,13 @@ click_plot_browser_allsamp_controller <- function(input, df, gene_name_list) {{ 
       " see vignette for more information on how to make these."
     )
   }
-  clusters <- isolate(input$clusters)
-  ratio_interval <- isolate(input$ratio_interval)
-  metadata_field <- isolate(input$metadata)
-  other_gene <- isolate(input$other_gene)
+  ratio_interval <- ratioInterval
+  metadata_field <- metadata
+  other_gene <- otherGene
 
   valid_enrichment_clusterings <- c(clusters != 1, isTruthy(ratio_interval), isTruthy(other_gene))
   enrichment_test_types <- c("Clusters", "Ratio bins", "Other gene tpm bins")[valid_enrichment_clusterings]
-  enrichment_term <- isolate(input$enrichment_term)
+  enrichment_term <- enrichmentTerm
   valid_enrichment_terms <- c(metadata_field, enrichment_test_types)
   if (!(enrichment_term %in% valid_enrichment_terms)) {
     stop(
@@ -261,12 +287,9 @@ click_plot_browser_allsamp_controller <- function(input, df, gene_name_list) {{ 
   }
 
 
-  normalization <- isolate(input$normalization)
-  kmer <- isolate(input$kmer)
-  min_count <- isolate(input$min_count)
+  min_count <- minCount
   if (!isTruthy(min_count)) min_count <- 0
-  frame <- isolate(input$frame)
-  summary_track <- isolate(input$summary_track)
+  summary_track <- summaryTrack
 
   if (!is.null(ratio_interval)) {
     if (ratio_interval != "") {
@@ -289,7 +312,7 @@ click_plot_browser_allsamp_controller <- function(input, df, gene_name_list) {{ 
 
   if (!is.null(other_gene) && other_gene != "") {
     print(paste("Sorting on", other_gene))
-    other_tx <- tx_from_gene_list(isolate(gene_name_list()), other_gene)[1]
+    other_tx <- tx_from_gene_list(gene_name_list(), other_gene)[1]
     other_tx_hash <- paste0("sortOther:", other_tx)
   } else {
     other_tx_hash <- other_tx <- NULL
@@ -298,13 +321,13 @@ click_plot_browser_allsamp_controller <- function(input, df, gene_name_list) {{ 
   table_hash <- paste(name(dff), id, table_path, lib_sizes, clusters, min_count,
     region_type, paste(metadata_field, collapse = ":"), normalization, frame,
     kmer, other_tx_hash, paste(ratio_interval, collapse = ":"),
-    leader_extension, trailer_extension, input$plotType,
-    isolate(input$viewMode), collapsed_introns_width,
+    leader_extension, trailer_extension, plotType,
+    viewMode, collapsed_introns_width,
     sep = "|_|"
   )
-  table_plot <- paste(table_hash, isolate(input$other_tx), summary_track,
-    display_annot, isolate(input$heatmap_color),
-    isolate(input$color_mult),
+  table_plot <- paste(table_hash, otherTx, summary_track,
+    display_annot, heatmapColor,
+    colorMult,
     sep = "|_|"
   )
 
