@@ -29,7 +29,7 @@ megaBrowserPlotServer <- function(id, df, metadata, gene_name_list) {
                 genomicRegion = input$genomic_region,
                 clusters = input$clusters,
                 ratioInterval = input$ratio_interval,
-                metadata = input$metadata,
+                metadata = metadata,
                 otherGene = input$other_gene,
                 enrichmentTerm = input$enrichment_term,
                 normalization = input$normalization,
@@ -44,9 +44,7 @@ megaBrowserPlotServer <- function(id, df, metadata, gene_name_list) {
         ) %>% shiny::bindEvent(input$go)
 
         # Main plot, this code is only run if 'plot' is pressed
-        table <- shiny::reactive(compute_collection_table_shiny(controller,
-            metadata = metadata
-        )) %>% shiny::bindEvent(controller())
+        table <- shiny::reactive(compute_collection_table_shiny(controller, metadata)) %>% shiny::bindEvent(controller())
 
         plot_object <- shiny::reactive(get_meta_browser_plot(
             table()$table,
