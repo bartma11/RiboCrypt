@@ -318,7 +318,7 @@ click_plot_browser_allsamp_controller <- function(
   }
 
   table_hash <- paste(name(dff), id, table_path, lib_sizes, clusters, min_count,
-    region_type, paste(metadata_field, collapse = ":"), normalization, frame,
+    region_type, paste(orderByMetadataField, collapse = ":"), normalization, frame,
     kmer, other_tx_hash, paste(ratio_interval, collapse = ":"),
     leader_extension, trailer_extension, plotType,
     viewMode, collapsed_introns_width,

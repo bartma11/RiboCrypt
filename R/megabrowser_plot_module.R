@@ -13,8 +13,12 @@ megaBrowserPlotUi <- function(id, gene_names_init, browser_options) {
     )
 }
 
-megaBrowserPlotServer <- function(id, df, metadata, gene_name_list) {
+megaBrowserPlotServer <- function(id, browser_options, df, metadata, rSelectedSamples) {
     shiny::moduleServer(id, function(input, output, session) {
+        introns_width <- as.numeric(browser_options["collapsed_introns_width"])
+        gene_name_list <- shiny::reactive({
+            get_gene_name_categories(df())
+        })
         ns <- shiny::NS(id)
         # Main plot controller, this code is only run if 'plot' is pressed
         controller <- shiny::reactive(
@@ -23,29 +27,29 @@ megaBrowserPlotServer <- function(id, df, metadata, gene_name_list) {
                 gene_name_list = gene_name_list,
                 selectedGene = input$gene,
                 selectedTx = input$tx,
-                regionType = input$region_type,
-                motif = input$motif,
-                extendLeaders = input$extendLeaders,
-                extendTrailers = input$extendTrailers,
-                displayAnnot = input$display_annot,
-                viewMode = input$viewMode,
-                otherTx = input$other_tx,
-                collapsedIntrons = input$collapsed_introns,
-                collapsedIntronsWidth = input$collapsed_introns_width,
-                genomicRegion = input$genomic_region,
-                clusters = input$clusters,
-                ratioInterval = input$ratio_interval,
+                regionType = c("leader+cds", "leader", "trailer", "cds", "mrna")[1],
+                motif = NULL,
+                extendLeaders = 0,
+                extendTrailers = 0,
+                displayAnnot = c(FALSE, TRUE)[1],
+                viewMode = list(FALSE, "tx", "genomic")[1],
+                otherTx = FALSE,
+                collapsedIntrons = c(FALSE, TRUE)[1],
+                collapsedIntronsWidth = introns_width,
+                genomicRegion = "",
+                clusters = 5,
+                ratioInterval = NULL,
                 orderByMetadataField = colnames(metadata)[1],
-                otherGene = input$other_gene,
-                enrichmentTerm = input$enrichment_term,
-                normalization = input$normalization,
-                kmer = input$kmer,
-                minCount = input$min_count,
-                frame = input$frame,
-                summaryTrack = input$summary_track,
-                plotType = input$plotType,
-                heatmapColor = input$heatmap_color,
-                colorMult = input$color_mult
+                otherGene = FALSE,
+                enrichmentTerm = "Clusters (Order factor 1)",
+                normalization = "maxNormalized",
+                kmer = 9,
+                minCount = 100,
+                frame = FALSE,
+                summaryTrack = FALSE,
+                plotType = "plotly",
+                heatmapColor = "Matrix(black, green, red)",
+                colorMult = 3
             )
         ) %>% shiny::bindEvent(input$go)
 

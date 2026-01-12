@@ -29,6 +29,14 @@ umap_ui <- function(id, all_exp_translons, gene_names_init, browser_options, lab
           gene_names_init = gene_names_init,
           browser_options = browser_options
         )
+      ),
+      tabPanel(
+        "MegaBrowser",
+        megaBrowserPlotUi(
+          ns("megaBrowserPlot"),
+          gene_names_init = gene_names_init,
+          browser_options = browser_options
+        )
       )
     ),
   )
@@ -98,6 +106,14 @@ umap_server <- function(id, metadata, all_exp_meta, browser_options) {
         "browserPlot",
         browser_options,
         shiny::reactive(input$dff),
+        rSelectedSamples
+      )
+
+      megaBrowserPlotServer(
+        "megaBrowserPlot",
+        browser_options,
+        shiny::reactive(input$dff),
+        metadata,
         rSelectedSamples
       )
 
