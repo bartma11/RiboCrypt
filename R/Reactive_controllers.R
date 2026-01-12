@@ -201,7 +201,7 @@ click_plot_browser_allsamp_controller <- function(
   genomicRegion,
   clusters,
   ratioInterval = NULL,
-  metadata,
+  orderByMetadataField,
   otherGene = NULL,
   enrichmentTerm,
   normalization,
@@ -272,13 +272,12 @@ click_plot_browser_allsamp_controller <- function(
     )
   }
   ratio_interval <- ratioInterval
-  metadata_field <- metadata
   other_gene <- otherGene
 
   valid_enrichment_clusterings <- c(clusters != 1, isTruthy(ratio_interval), isTruthy(other_gene))
   enrichment_test_types <- c("Clusters", "Ratio bins", "Other gene tpm bins")[valid_enrichment_clusterings]
   enrichment_term <- enrichmentTerm
-  valid_enrichment_terms <- c(metadata_field, enrichment_test_types)
+  valid_enrichment_terms <- c(orderByMetadataField, enrichment_test_types)
   if (!(enrichment_term %in% valid_enrichment_terms)) {
     stop(
       "Enrichment term is not valid, valid options:\n",
@@ -340,7 +339,7 @@ click_plot_browser_allsamp_controller <- function(
     annotation = cds_annotation,
     table_path = table_path,
     lib_sizes = lib_sizes,
-    metadata_field = metadata_field,
+    metadata_field = orderByMetadataField,
     normalization = normalization,
     kmer = kmer,
     min_count = min_count,

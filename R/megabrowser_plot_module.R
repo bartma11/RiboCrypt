@@ -1,6 +1,12 @@
-megaBrowserPlotUi <- function(id) {
+megaBrowserPlotUi <- function(id, gene_names_init, browser_options) {
     ns <- shiny::NS(id)
+    all_isoforms <- subset(gene_names_init, label == browser_options["default_gene"])
     shiny::div(
+        shiny::fluidRow(
+            shiny::column(2, gene_input_select(ns, FALSE, browser_options)),
+            shiny::column(2, tx_input_select(ns, FALSE, all_isoforms)),
+            shiny::column(1, NULL, plot_button(ns("go")))
+        ),
         shiny::fluidRow(
             plotly::plotlyOutput(ns("plot"))
         )
@@ -29,7 +35,7 @@ megaBrowserPlotServer <- function(id, df, metadata, gene_name_list) {
                 genomicRegion = input$genomic_region,
                 clusters = input$clusters,
                 ratioInterval = input$ratio_interval,
-                metadata = metadata,
+                orderByMetadataField = colnames(metadata)[1],
                 otherGene = input$other_gene,
                 enrichmentTerm = input$enrichment_term,
                 normalization = input$normalization,
