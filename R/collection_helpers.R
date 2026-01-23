@@ -83,8 +83,8 @@ normalize_collection <- function(table, normalization, lib_sizes = NULL,
 }
 
 match_collection_to_exp <- function(metadata, df) {
-  matchings <- chmatch(runIDs(df), metadata$Run)
-  matchings <- matchings[!is.na(matchings)]
+  matchings <- data.table::chmatch(ORFik::runIDs(df), metadata$Run)
+  # matchings <- matchings[!is.na(matchings)]
   if (length(matchings) != nrow(df)) {
     stop("Metadata does not contain information on all collection samples!")
   }
@@ -93,7 +93,7 @@ match_collection_to_exp <- function(metadata, df) {
 
 filter_collection_on_count <- function(table, min_count) {
   if (min_count > 0) {
-    libs_counts_total <- table[, .(count = sum(count)), library][, valid := count >= min_count]
+    libs_counts_total <- table[,.(count = sum(count)), library][, valid := count >= min_count]
     valid_libs <- libs_counts_total$valid
     if (sum(valid_libs) == 0) {
       stop("Count filter too strict, no libraries with that much reads for this transcript!")
@@ -205,7 +205,7 @@ compute_collection_table <- function(path, lib_sizes, df,
                                      ratio_interval = NULL,
                                      decreasing_order = FALSE,
                                      selected_samples = NULL) {
-  load_collection(path, columns = selected_samples)
+  table <- load_collection(path, columns = selected_samples)
   if (!is.null(subset)) {
     table <- subset_fst_by_interval(table, subset)
   }

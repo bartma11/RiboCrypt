@@ -13,17 +13,21 @@ megaBrowserPlotUi <- function(id, gene_names_init, browser_options) {
     )
 }
 
-megaBrowserPlotServer <- function(id, browser_options, df, metadata, rSelectedSamples) {
+megaBrowserPlotServer <- function(id, browser_options, rExperiment, metadata, rSelectedSamples) {
     shiny::moduleServer(id, function(input, output, session) {
         introns_width <- as.numeric(browser_options["collapsed_introns_width"])
-        gene_name_list <- shiny::reactive({
-            get_gene_name_categories(df())
+        loadedExperiment <- shiny::reactive({
+            shiny::req(rExperiment())
+            shiny::req(rExperiment() != "")
+            ORFik::read.experiment(rExperiment(), validate = FALSE)
         })
-        ns <- shiny::NS(id)
+        gene_name_list <- shiny::reactive({
+            get_gene_name_categories(loadedExperiment())
+        })
         # Main plot controller, this code is only run if 'plot' is pressed
-        controller <- shiny::reactive(
+        controller <- shiny::reactive({
             click_plot_browser_allsamp_controller(
-                df = df,
+                df = loadedExperiment,
                 gene_name_list = gene_name_list,
                 selectedGene = input$gene,
                 selectedTx = input$tx,
@@ -41,7 +45,7 @@ megaBrowserPlotServer <- function(id, browser_options, df, metadata, rSelectedSa
                 ratioInterval = NULL,
                 orderByMetadataField = colnames(metadata)[1],
                 otherGene = FALSE,
-                enrichmentTerm = "Clusters (Order factor 1)",
+                enrichmentTerm = c("Clusters", "BioProject")[1],
                 normalization = "maxNormalized",
                 kmer = 9,
                 minCount = 100,
@@ -51,18 +55,21 @@ megaBrowserPlotServer <- function(id, browser_options, df, metadata, rSelectedSa
                 heatmapColor = "Matrix(black, green, red)",
                 colorMult = 3
             )
-        ) %>% shiny::bindEvent(input$go)
+        }) %>% shiny::bindEvent(input$go)
 
         # Main plot, this code is only run if 'plot' is pressed
-        table <- shiny::reactive(compute_collection_table_shiny(controller, metadata)) %>% shiny::bindEvent(controller())
-
-        plot_object <- shiny::reactive(get_meta_browser_plot(
-            table()$table,
-            input$heatmap_color,
-            input$clusters,
-            input$color_mult,
-            input$plotType
-        )) %>% shiny::bindEvent(table())
+        table <- shiny::reactive({
+            compute_collection_table_shiny(controller, metadata)
+        }) %>% shiny::bindEvent(controller())
+        plot_object <- shiny::reactive({
+            get_meta_browser_plot(
+                table()$table,
+                input$heatmap_color,
+                input$clusters,
+                input$color_mult,
+                input$plotType
+            )
+        }) %>% shiny::bindEvent(table())
 
         output$plot <- plotly::renderPlotly({
             get_meta_browser_plot_full(table()$table,

@@ -244,11 +244,11 @@ click_plot_browser_allsamp_controller <- function(
       display_region_gr <- reduce(unlistGrl(tx_annotation))
       display_region <- groupGRangesBy(display_region_gr, rep(names(display_region), length(display_region_gr)))
     }
-    display_region <- genomic_string_to_grl(genomicRegion, display_region,
-      max_size = 1e6, viewMode,
-      leader_extension, trailer_extension,
-      collapsed_introns_width
-    )
+    # display_region <- genomic_string_to_grl(genomicRegion, display_region,
+    #   max_size = 1e6, viewMode,
+    #   leader_extension, trailer_extension,
+    #   collapsed_introns_width
+    # )
     if (!is.null(leader_extension) && is.numeric(leader_extension) && leader_extension != 0) {
       if (leader_extension > 5e5) stop("Maximum leader extension is 5e5 nt")
       display_region <- extendLeaders(display_region, leader_extension)
