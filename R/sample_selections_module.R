@@ -2,12 +2,7 @@ createNewSelectionChoice <- "New selection..."
 
 sampleSelectionsUi <- function(id) {
   ns <- shiny::NS(id)
-  shiny::fluidRow(
-    shiny::column(
-      2,
-      shiny::selectizeInput(ns("activeSelectionSelect"), "Selection", choices = list())
-    )
-  )
+  shiny::selectizeInput(ns("activeSelectionSelect"), "Selection", choices = list())
 }
 
 sampleSelectionsServer <- function(id, metadata, rSelection, rFilteredSelection) {

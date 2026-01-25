@@ -6,39 +6,17 @@ umap_ui <- function(id, all_exp_translons, gene_names_init, browser_options, lab
     h2("UMAP from count tables of all samples of all genes in organism"),
     # Include shinyjs so we can trigger hidden buttons
     tags$hr(),
-    tabsetPanel(
-      tabPanel(
-        "UMAP plot",
-        fluidRow(
-          column(2, umap_plot_type(ns)),
-          column(2, experiment_input_select(all_exp_translons$name, ns)),
-          column(2, umap_color_by_input_select(ns)),
-          column(1, plot_button(ns("goUmapPlot")))
-        ),
-        fluidRow(
-          plotlyOutput(ns("c"), height = "700px")
-          %>% shinycssloaders::withSpinner(color = "#0dc5c1")
-        ),
-        sampleSelectionsUi(ns("sampleSelection")),
-        sampleTableUi(ns("sampleTable"))
-      ),
-      tabPanel(
-        "Browser",
-        browserPlotUi(
-          ns("browserPlot"),
-          gene_names_init = gene_names_init,
-          browser_options = browser_options
-        )
-      ),
-      tabPanel(
-        "MegaBrowser",
-        megaBrowserPlotUi(
-          ns("megaBrowserPlot"),
-          gene_names_init = gene_names_init,
-          browser_options = browser_options
-        )
-      )
+    "UMAP plot",
+    fluidRow(
+      column(2, umap_plot_type(ns)),
+      column(2, experiment_input_select(all_exp_translons$name, ns)),
+      column(2, umap_color_by_input_select(ns)),
+      column(1, plot_button(ns("goUmapPlot")))
     ),
+    fluidRow(
+      plotlyOutput(ns("c"), height = "700px")
+      %>% shinycssloaders::withSpinner(color = "#0dc5c1")
+    )
   )
 }
 
@@ -75,47 +53,11 @@ umap_server <- function(id, metadata, all_exp_meta, browser_options) {
               umap_centroids_plot(isolate(md()))
             }
           }
-          onRender(generated_plot, fetchJS("umap_plot_extension.js"), ns("selectedPoints"))
+          generated_plot
         }) %>%
           bindCache(input$dff, input$umap_col, input$umap_plot_type) %>%
           bindEvent(input$goUmapPlot, ignoreInit = FALSE, ignoreNULL = TRUE)
       }
-
-      rSelection <- shiny::reactiveVal(NULL)
-      rFilteredSelection <- shiny::reactiveVal(NULL)
-
-      shiny::observe({
-        rSelection(input$selectedPoints)
-      }) %>% shiny::bindEvent(input$selectedPoints)
-
-      sampleTableServer(
-        "sampleTable",
-        metadata,
-        rSelection,
-        rFilteredSelection
-      )
-
-      rSelectedSamples <- sampleSelectionsServer(
-        "sampleSelection",
-        metadata,
-        rSelection,
-        rFilteredSelection
-      )
-
-      browserPlotServer(
-        "browserPlot",
-        browser_options,
-        shiny::reactive(input$dff),
-        rSelectedSamples
-      )
-
-      megaBrowserPlotServer(
-        "megaBrowserPlot",
-        browser_options,
-        shiny::reactive(input$dff),
-        metadata,
-        rSelectedSamples
-      )
 
       check_url_for_basic_parameters()
     }

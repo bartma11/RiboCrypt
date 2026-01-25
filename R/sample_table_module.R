@@ -14,8 +14,8 @@ sampleTableServer <- function(id, metadata, rSelection, rFilteredSelection) {
     })
 
     tableData <- shiny::reactive({
-      shiny::req(!is.null(selectedSamples()))
-      metadata[Sample %in% selectedSamples()]
+      shiny::req(!is.null(selectedSamples()) && all(selectedSamples() != ""))
+      metadata[Run %in% selectedSamples()]
     })
 
     output$sampleTable <-
