@@ -1,4 +1,4 @@
-observatory_ui <- function(id, all_exp_meta, browser_options) {
+observatory_ui <- function(id, all_exp_meta, gene_names_init, browser_options) {
     ns <- shiny::NS(id)
     shiny::tabPanel(
         title = "Observatory",
@@ -23,12 +23,12 @@ observatory_ui <- function(id, all_exp_meta, browser_options) {
                 )
             ),
             shiny::tabPanel(
-                "Table",
-                h2("Table")
-            ),
-            shiny::tabPanel(
-                "Coverage",
-                h2("Coverage")
+                "Browser",
+                browserPlotUi(
+                    ns("browserPlot"),
+                    gene_names_init = gene_names_init,
+                    browser_options = browser_options
+                )
             )
         )
     )
@@ -62,11 +62,13 @@ observatory_server <- function(id, metadata, browser_options) {
             rFilteredSelection
         )
 
-        # browserPlotServer(
-        #     "browserPlot",
-        #     browser_options,
-        #     shiny::reactive(input$dff),
-        #     rSelectedSamples
-        # )
+        browserPlotServer(
+            "browserPlot",
+            browser_options,
+            # TODO: This is a hacky way to get the data from the UMAP plot,
+            # find a better way to do this
+            shiny::reactive(input[["umapPlot-dff"]]),
+            rSelectedSamples
+        )
     })
 }
