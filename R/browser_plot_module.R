@@ -8,7 +8,7 @@ browserPlotUi <- function(id, gene_names_init, browser_options) {
       column(1, NULL, plot_button(ns("go")))
     ),
     fluidRow(
-      plotlyOutput(ns("plot"))
+      plotlyOutput(ns("plot")) %>% shinycssloaders::withSpinner(color = "#0dc5c1")
     )
   )
 }
