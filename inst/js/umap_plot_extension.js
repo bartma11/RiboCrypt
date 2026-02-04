@@ -1,6 +1,5 @@
 (elem, _, data) => {
   const onSelected = (e) => {
-    console.log("selected trigerred");
     const selectedPoints = e.points;
     const valuesInputId = data;
     const pointValuesToSet = {
@@ -17,19 +16,19 @@
     Shiny.setInputValue(valuesInputId, pointValuesToSet);
   };
   elem.on("plotly_selected", onSelected);
-  
+
   onChangedSelection = (message) => {
     const currentData = elem.data;
-    
+
     currentData.forEach((trace, index) => {
       const foundIndex = message.curveIndex.findIndex((i) => i === index)
-      if(foundIndex > -1) {
+      if (foundIndex > -1) {
         trace.selectedpoints = message.pointIndex[foundIndex];
       } else {
         trace.selectedpoints = [];
       }
     });
-    
+
     Plotly.react(elem, currentData, elem.layout)
   };
   Shiny.addCustomMessageHandler("samplesActiveSelectionChanged", onChangedSelection);
