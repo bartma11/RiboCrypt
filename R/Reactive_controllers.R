@@ -32,11 +32,14 @@ click_plot_browser_main_controller <- function(
   phyloP,
   mapability,
   expressionPlot,
+  gg_theme,
+  user_info,
+  colors,
   useFST = TRUE,
   selectedSamples = NULL
-) {{ print("- Browser controller")
-  print(paste("here is gene!", isolate(selectedGene)))
-  print(paste("here is tx!", isolate(selectedTx)))
+) {
+  time_before <- controller_init(input, id = "Browser")
+
   # Annotation
   display_region <- observed_tx_annotation(isolate(selectedTx), tx)
   tx_annotation <- observed_cds_annotation(
@@ -146,12 +149,20 @@ click_plot_browser_main_controller <- function(
     expressionPlot
   )
 
+  # TODO: unique align integrate with FST
+  # if (unique_align) uniqueMappers(dff) <- TRUE
+  # reads <- get_track_paths(dff)
+
   frames_subset <- framesSubset
   use_all_frames <- length(frames_subset) == 0 || any(c("", "all") %in% frames_subset)
   if (use_all_frames) frames_subset <- "all"
+  frame_colors <- isolate(colors)
+  colors <- NULL
 
   shinyjs::toggleClass(id = "floating_settings", class = "hidden", condition = TRUE)
 
+  cat("-- Browser controller done: ")
+  print(round(Sys.time() - time_before, 2))
   reactiveValues(
     dff = dff,
     display_region = display_region,
@@ -176,13 +187,16 @@ click_plot_browser_main_controller <- function(
     zoom_range = zoom_range,
     frames_subset = frames_subset,
     mapability = mapability,
+    frame_colors = frame_colors,
+    colors = colors,
+    gg_theme = gg_theme,
+    is_cellphone = user_info()$is_cellphone,
+    user_browser_width = user_info()$width,
     hash_bottom = hash_strings[["hash_bottom"]],
     hash_browser = hash_strings[["hash_browser"]],
-    hash_expression = hash_strings[["hash_expression"]],
-    useFST = useFST,
-    readsFST = readsFST,
-    selectedSamples = selectedSamples
-  ) }}
+    hash_expression = hash_strings[["hash_expression"]]
+  )
+}
 
 click_plot_browser_allsamp_controller <- function(
   df,
@@ -213,17 +227,16 @@ click_plot_browser_allsamp_controller <- function(
   heatmapColor,
   colorMult
 ) {{ shinyjs::toggleClass(id = "floating_settings", class = "hidden", condition = TRUE)
-  print(paste("Gene (Megabrowser):", selectedGene))
-  print(paste("Tx (Megabrowser):", selectedTx))
-  id <- selectedTx
-  if (id == "") stop("Emptry transcript isoforom given!")
+  time_before <- controller_init(input, id = "Mega Browser")
 
-  region_type <- regionType
+  # Input copies
   dff <- df()
+
+  id <- selectedTx
+  region_type <- regionType
   leader_extension <- extendLeaders
   trailer_extension <- extendTrailers
   display_annot <- displayAnnot
-
   annotation_list <- subset_tx_by_region(dff, id, region_type)
   tx_annotation <- display_region <- annotation_list$region
 
@@ -271,13 +284,11 @@ click_plot_browser_allsamp_controller <- function(
       " see vignette for more information on how to make these."
     )
   }
-  ratio_interval <- ratioInterval
-  other_gene <- otherGene
 
   valid_enrichment_clusterings <- c(clusters != 1, isTruthy(ratio_interval), isTruthy(other_gene))
   enrichment_test_types <- c("Clusters", "Ratio bins", "Other gene tpm bins")[valid_enrichment_clusterings]
   enrichment_term <- enrichmentTerm
-  valid_enrichment_terms <- c(orderByMetadataField, enrichment_test_types)
+  valid_enrichment_terms <- c(metadata_field, enrichment_test_types)
   if (!(enrichment_term %in% valid_enrichment_terms)) {
     stop(
       "Enrichment term is not valid, valid options:\n",
@@ -286,8 +297,11 @@ click_plot_browser_allsamp_controller <- function(
   }
 
 
+  normalization <- normalization
+  kmer <- kmer
   min_count <- minCount
   if (!isTruthy(min_count)) min_count <- 0
+  frame <- frame
   summary_track <- summaryTrack
 
   if (!is.null(ratio_interval)) {
@@ -311,26 +325,27 @@ click_plot_browser_allsamp_controller <- function(
 
   if (!is.null(other_gene) && other_gene != "") {
     print(paste("Sorting on", other_gene))
-    other_tx <- tx_from_gene_list(gene_name_list(), other_gene)[1]
+    other_tx <- tx_from_gene_list(isolate(gene_name_list()), other_gene)[1]
     other_tx_hash <- paste0("sortOther:", other_tx)
   } else {
     other_tx_hash <- other_tx <- NULL
   }
 
   table_hash <- paste(name(dff), id, table_path, lib_sizes, clusters, min_count,
-    region_type, paste(orderByMetadataField, collapse = ":"), normalization, frame,
+    region_type, paste(metadata_field, collapse = ":"), normalization, frame,
     kmer, other_tx_hash, paste(ratio_interval, collapse = ":"),
-    leader_extension, trailer_extension, plotType,
-    viewMode, collapsed_introns_width,
+    leader_extension, trailer_extension, input$plotType,
+    isolate(input$viewMode), collapsed_introns_width,
     sep = "|_|"
   )
-  table_plot <- paste(table_hash, otherTx, summary_track,
-    display_annot, heatmapColor,
-    colorMult,
+  table_plot <- paste(table_hash, isolate(input$other_tx), summary_track,
+    display_annot, isolate(input$heatmap_color),
+    isolate(input$color_mult),
     sep = "|_|"
   )
 
-  print(paste("Table hash: ", table_hash))
+  cat("-- Mega Browser controller done: ")
+  print(round(Sys.time() - time_before, 2))
   reactiveValues(
     dff = dff,
     id = id,
@@ -339,7 +354,7 @@ click_plot_browser_allsamp_controller <- function(
     annotation = cds_annotation,
     table_path = table_path,
     lib_sizes = lib_sizes,
-    metadata_field = orderByMetadataField,
+    metadata_field = metadata_field,
     normalization = normalization,
     kmer = kmer,
     min_count = min_count,

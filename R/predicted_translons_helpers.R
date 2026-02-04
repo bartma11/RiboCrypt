@@ -1,9 +1,11 @@
 # Function to load data
 load_data <- function(species) {
   df <- read.experiment(species, validate = FALSE)
-  table_path <- file.path(refFolder(df),
-                          "predicted_translons",
-                          "predicted_translons_with_sequence.fst")
+  table_path <- file.path(
+    refFolder(df),
+    "predicted_translons",
+    "predicted_translons_with_sequence.fst"
+  )
   if (file.exists(table_path)) {
     translon_table <- fst::read_fst(table_path, as.data.table = TRUE)
     setattr(translon_table, "exp", species)
@@ -23,7 +25,9 @@ load_data_umap <- function(species, color.by = NULL) {
     dt_umap <- fst::read_fst(table_path, as.data.table = TRUE)
     if (length(color.by) > 1) {
       dt_umap[, color_column := do.call(paste, c(.SD, sep = " | ")), .SDcols = color.by]
-    } else dt_umap[, color_column := get(color.by)]
+    } else {
+      dt_umap[, color_column := get(color.by)]
+    }
 
     setattr(dt_umap, "exp", species)
     setattr(dt_umap, "color.by", color.by)
@@ -41,7 +45,9 @@ load_data_umap <- function(species, color.by = NULL) {
 handle_download_trigger <- function(input, output, current_format, trigger_input, download_button, md, session) {
   with(rlang::caller_env(), {
     observeEvent(input[[trigger_input]], {
-      if (is.null(md()) || isolate(input$dff) != name(md()$df)) md(load_data(isolate(input$dff)))
+      exp_to_use <- isolate(input$dff)
+      if (!isTruthy(exp_to_use)) exp_to_use <- browser_options["default_experiment_translon"]
+      if (is.null(md()) || exp_to_use != name(md()$df)) md(load_data(exp_to_use))
       req(md()$df)
       # For Excel, check that a table is available (otherwise abort)
       if (is.null(md()$translon_table)) {
@@ -53,8 +59,10 @@ handle_download_trigger <- function(input, output, current_format, trigger_input
       current_downloads <- downloaded_files()
       if (filename %in% current_downloads) {
         showNotification(
-          paste("You have already downloaded the", ifelse(current_format == "csv", "CSV", "Excel"),
-                "for this dataset!"),
+          paste(
+            "You have already downloaded the", ifelse(current_format == "csv", "CSV", "Excel"),
+            "for this dataset!"
+          ),
           type = "warning"
         )
       } else {
@@ -91,22 +99,40 @@ render_translon_datatable <- function(data, session, add_links = TRUE) {
   ns <- session$ns
   # Add URL
   if (add_links) {
-    host <- getHostFromURL(session) #"https://ribocrypt.org"
+    host <- getHostFromURL(session) # "https://ribocrypt.org"
     exp <- attr(data, "exp")
     # exp <- "all_merged-Homo_sapiens_modalities"
-    symbols <- if(!is.null(data$external_gene_name)) {data$external_gene_name} else NULL
-    gene_ids <- if(!is.null(data$ensembl_gene_id)) {data$ensembl_gene_id} else data$GENE
-    tx_ids <- if(!is.null(data$ensembl_tx_name)) {data$ensembl_tx_name} else data$TX
-    urls <- make_rc_url(symbol = symbols, gene_id = gene_ids, tx_id = tx_ids,
-                        exp = exp,
-                        libraries = NULL, leader_extension = 2000, trailer_extension = 0,
-                        viewMode = FALSE, other_tx = FALSE,
-                        plot_on_start = TRUE, frames_type = "columns", kmer=1,
-                        add_translons = TRUE, zoom_range = data$coordinates,
-                        host = host)
-    data <- cbind(link = paste0('<a href=', urls, ' target=\"_blank\">',
-                                "Translon_", seq(length(urls)), '</a>'),
-                  data)
+    symbols <- if (!is.null(data$external_gene_name)) {
+      data$external_gene_name
+    } else {
+      NULL
+    }
+    gene_ids <- if (!is.null(data$ensembl_gene_id)) {
+      data$ensembl_gene_id
+    } else {
+      data$GENE
+    }
+    tx_ids <- if (!is.null(data$ensembl_tx_name)) {
+      data$ensembl_tx_name
+    } else {
+      data$TX
+    }
+    urls <- make_rc_url(
+      symbol = symbols, gene_id = gene_ids, tx_id = tx_ids,
+      exp = exp,
+      libraries = NULL, leader_extension = 2000, trailer_extension = 0,
+      viewMode = FALSE, other_tx = FALSE,
+      plot_on_start = TRUE, frames_type = "columns", kmer = 1,
+      add_translons = TRUE, zoom_range = data$coordinates,
+      host = host
+    )
+    data <- cbind(
+      link = paste0(
+        "<a href=", urls, ' target=\"_blank\">',
+        "Translon_", seq(length(urls)), "</a>"
+      ),
+      data
+    )
     if ("ID" %in% colnames(data)) {
       data <- cbind(data[, .(link, ID)], data[, !(colnames(data) %in% c("link", "ID")), with = FALSE])
     } else {
@@ -143,7 +169,7 @@ render_translon_datatable <- function(data, session, add_links = TRUE) {
       ),
       # Tag the ID column's cells so we can bind a click handler only there
       columnDefs = list(list(
-        targets = id_target - 1,     # DataTables is 0-based
+        targets = id_target - 1, # DataTables is 0-based
         className = "dt-id"
       ))
     ),
