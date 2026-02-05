@@ -350,7 +350,7 @@ hash_strings_browser <- function(
   kmer,
   framesType,
   framesSubset,
-  unique_align
+  unique_align,
   customSequence,
   logScale,
   phyloP,

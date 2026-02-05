@@ -8,7 +8,7 @@ sample_info_ui <- function(id, label = "sample_info") {
   )
 }
 
-sample_info_server <- function(id, metadata) {
+sample_info_server <- function(id, metadata, search_on_init = "") {
   moduleServer(
     id,
     function(input, output, session) {
@@ -17,11 +17,8 @@ sample_info_server <- function(id, metadata) {
                                          extensions = 'Buttons',
                                          filter = "top",
                                          options = list(dom = 'Bfrtip',
-                                                        buttons = NULL),
-                                         server = TRUE)
-      
-      proxyTable <- DT::dataTableProxy("sample_info")
-      
+                                                        buttons = NULL,
+                                                        search = list(search = as.character(search_on_init))))
     }
   )
 }

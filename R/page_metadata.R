@@ -20,7 +20,7 @@ metadata_server <- function(id, all_experiments, metadata, all_exp_meta,
   colnames(metadata)[colnames(metadata) == "ScientificName"] <- "Organism"
   
   if (!is.null(metadata)) {
-    sample_info_server("sample_info", metadata)
+    sample_info_server("sample_info", metadata, browser_options["search_on_init"])
   } else print("No metadata given, ignoring Sample_info server.")
   study_info_server("study_info", all_experiments)
   sra_search_server("sra_search")

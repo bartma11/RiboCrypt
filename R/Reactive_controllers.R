@@ -344,33 +344,42 @@ click_plot_browser_allsamp_controller <- function(
     sep = "|_|"
   )
 
-  cat("-- Mega Browser controller done: ")
-  print(round(Sys.time() - time_before, 2))
-  reactiveValues(
-    dff = dff,
-    id = id,
-    display_region = display_region,
-    tx_annotation = tx_annotation,
-    annotation = cds_annotation,
-    table_path = table_path,
-    lib_sizes = lib_sizes,
-    metadata_field = metadata_field,
-    normalization = normalization,
-    kmer = kmer,
-    min_count = min_count,
-    viewMode = viewMode,
-    collapsed_introns_width = collapsed_introns_width,
-    subset = NULL,
-    region_type = region_type,
-    group_on_tx_tpm = other_tx,
-    ratio_interval = ratio_interval,
-    frame = frame,
-    display_annot = display_annot,
-    summary_track = summary_track,
-    enrichment_term = enrichment_term,
-    table_hash = table_hash,
-    table_plot = table_plot
-  ) }}
+    cat("-- Mega Browser controller done: "); print(round(Sys.time() - time_before, 2))
+    reactiveValues(dff = dff,
+                   id = id,
+                   display_region = display_region,
+                   tx_annotation = tx_annotation,
+                   annotation = cds_annotation,
+                   table_path = table_path,
+                   lib_sizes = lib_sizes,
+                   metadata_field = metadata_field,
+                   normalization = normalization,
+                   kmer = kmer,
+                   min_count = min_count,
+                   viewMode = viewMode,
+                   collapsed_introns_width = collapsed_introns_width,
+                   subset = NULL,
+                   region_type = region_type,
+                   group_on_tx_tpm = other_tx,
+                   ratio_interval = ratio_interval,
+                   frame = frame,
+                   plotType = plotType,
+                   display_annot = display_annot,
+                   summary_track = summary_track,
+                   enrichment_term = enrichment_term,
+                   table_hash = table_hash,
+                   table_plot = table_plot)
+}
+
+controller_init <- function(input, id = "Browser") {
+  time_before <- Sys.time()
+  print(paste("-",  id, "controller"))
+  shinyjs::toggleClass(id = "floating_settings", class = "hidden", condition = TRUE)
+  print(paste("Gene:", isolate(input$gene)))
+  print(paste("Tx:", isolate(input$tx)))
+  if (isolate(input$tx) == "") stop("Empty transcript isoform given!")
+  return(time_before)
+}
 
 click_plot_browser_new_controller <- function(input, tx, cds, libs, df) {{ print(paste("here is gene!", isolate(input$gene)))
   print(paste("here is tx!", isolate(input$tx)))
@@ -487,9 +496,13 @@ click_plot_heatmap_main_controller <- function(input, tx, cds, libs, df,
 
 click_plot_codon_main_controller <- function(input, tx, cds, libs, df, length_table) {
   cds_display <- observed_cds_heatmap(isolate(input$tx), cds, length_table,
-    minFiveUTR = 3
-  )
-  dff <- observed_exp_subset(isolate(input$library), libs, df)
+                                      minFiveUTR = 3)
+  all_libs <- isolate(input$library)
+  background <- if (isTruthy(input$background)) {
+    all_libs <- unique(c(all_libs, isolate(input$background)))
+    ORFik:::name_decider(observed_exp_subset(isolate(input$background), libs, df), "full")
+  }
+  dff <- observed_exp_subset(all_libs, libs, df)
 
   time_before <- Sys.time()
   reads <- load_reads(dff, "cov")
@@ -501,32 +514,34 @@ click_plot_codon_main_controller <- function(input, tx, cds, libs, df, length_ta
   differential <- input$differential
   exclude_start_stop <- input$exclude_start_stop
   ratio_thresh <- input$ratio_thresh
+  only_significant_difexp <- input$only_significant_difexp
+
+
   plot_export_format <- isolate(input$plot_export_format)
 
-  hash_string <- paste(name(dff), names, filter_value, sep = "|__|")
+  hash_string <- paste(name(dff), names, filter_value, paste(background, collapse = "|lib|"), sep = "|__|")
   hash_string_plot <- paste(hash_string, normalization, differential,
-    exclude_start_stop, ratio_thresh, plot_export_format,
-    sep = "|__|"
-  )
+                            exclude_start_stop, ratio_thresh, plot_export_format,
+                            only_significant_difexp, sep = "|__|")
   if (differential & length(names) == 1) stop("For differential mode you need at least 2 libraries!")
 
   cat("Library loading: ")
   print(round(Sys.time() - time_before, 2))
   message("-- Data loading complete")
-  reactiveValues(
-    dff = dff,
-    cds_display = cds_display,
-    reads = reads,
-    normalization = input$normalization,
-    codon_score = input$codon_score,
-    filter_value = filter_value,
-    differential = differential,
-    ratio_thresh = ratio_thresh,
-    exclude_start_stop = exclude_start_stop,
-    plot_export_format = plot_export_format,
-    hash_string = hash_string,
-    hash_string_plot = hash_string_plot
-  )
+  reactiveValues(dff = dff,
+                 cds_display = cds_display,
+                 reads = reads,
+                 normalization = input$normalization,
+                 codon_score = input$codon_score,
+                 filter_value = filter_value,
+                 differential = differential,
+                 ratio_thresh = ratio_thresh,
+                 exclude_start_stop = exclude_start_stop,
+                 background = background,
+                 only_significant_difexp = only_significant_difexp,
+                 plot_export_format = plot_export_format,
+                 hash_string = hash_string,
+                 hash_string_plot = hash_string_plot)
 }
 
 click_plot_DEG_main_controller <- function(input, df, all_libs, factor = NULL) {
@@ -580,4 +595,5 @@ click_plot_DEG_main_controller <- function(input, df, all_libs, factor = NULL) {
     hash_string_full = hash_string_full,
     hash_string_plot = hash_string_plot
   )
+}
 }
