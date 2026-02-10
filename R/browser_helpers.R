@@ -64,7 +64,7 @@ multiOmicsPlot_all_track_plots <- function(profiles, withFrames, frame_colors, c
 
 multiOmicsPlot_all_profiles <- function(display_range, reads, kmers,
                                         kmers_type, frames_type, frames_subset,
-                                        withFrames, log_scale, BPPARAM) {
+                                        withFrames, log_scale, BPPARAM, normalization, selectedSamples = NULL, useFST = FALSE, readsFST = NULL) {
   force(display_range)
   force(reads)
   force(kmers)
@@ -73,15 +73,50 @@ multiOmicsPlot_all_profiles <- function(display_range, reads, kmers,
   force(withFrames)
   force(log_scale)
   force(frames_subset)
-  if (is(BPPARAM, "SerialParam")) {
-    profiles <- mapply(function(x,y,c,l) getProfileWrapper(display_range, x, y, c, l, kmers_type,
-                                                           type = frames_type, frames_subset = frames_subset),
-                       reads, withFrames, kmers, log_scale, SIMPLIFY = FALSE)
+
+  if (useFST) {
+    # selectedSamples should be a list of vectors, each vector containing a list of samples to aggregate
+    flatSelectedSamples <- unlist(selectedSamples, recursive = TRUE)
+    reads <- load_collection(
+      readsFST,
+      grl = display_range,
+      format = "wide",
+      columns = flatSelectedSamples
+    )
+    aggregationMethod <- rowMeans
+    profiles <- lapply(selectedSamples, function(samples) {
+      count <- aggregationMethod(reads[, samples, with = FALSE], na.rm = TRUE)
+      data.table(
+        count = count,
+        position = 1:length(count),
+        library = as.factor(rep_len(1, length.out = length(count))),
+        frame = as.factor(rep_len(1:3, length.out = length(count)))
+      ) %>%
+        smoothenMultiSampCoverage(kmers, kmers_type = kmers_type, split_by_frame = TRUE)
+    })
   } else {
-    profiles <- bpmapply(function(x,y,c,l) getProfileWrapper(display_range, x,y,c,l, kmers_type,
-                                                             type = frames_type, frames_subset = frames_subset),
-                         reads, withFrames, kmers, log_scale, SIMPLIFY = FALSE,
-                         BPPARAM = BPPARAM)
+    if (is(BPPARAM, "SerialParam")) {
+      profiles <- mapply(
+        function(x, y, c, l) {
+          getProfileWrapper(display_range, x, y, c, l, kmers_type,
+            type = frames_type, frames_subset = frames_subset, normalization = normalization
+          )
+        },
+        reads, withFrames, kmers, log_scale,
+        SIMPLIFY = FALSE
+      )
+    } else {
+      profiles <- bpmapply(
+        function(x, y, c, l) {
+          getProfileWrapper(display_range, x, y, c, l, kmers_type,
+            type = frames_type, frames_subset = frames_subset, normalization = normalization
+          )
+        },
+        reads, withFrames, kmers, log_scale,
+        SIMPLIFY = FALSE,
+        BPPARAM = BPPARAM
+      )
+    }
   }
   return(profiles)
 }
@@ -119,17 +154,19 @@ multiOmicsPlot_complete_plot <- function(track_panel, bottom_panel, display_rang
 #' @importFrom Biostrings nchar translate
 #'
 multiOmicsPlot_internal <- function(display_range, df, annotation = "cds", reference_sequence = findFa(df),
-                                    reads = outputLibs(df, type = "pshifted", output.mode = "envirlist",
-                                                       naming = "full", BPPARAM = BiocParallel::SerialParam()),
+                                    reads = outputLibs(df,
+                                      type = "pshifted", output.mode = "envirlist",
+                                      naming = "full", BPPARAM = BiocParallel::SerialParam()
+                                    ),
                                     viewMode = c("tx", "genomic")[1],
                                     custom_regions = NULL,
                                     leader_extension = 0, trailer_extension = 0,
                                     withFrames = libraryTypes(df, uniqueTypes = FALSE) %in% c("RFP", "RPF", "LSU", "TI"),
                                     frames_type = "lines", colors = NULL, kmers = NULL, kmers_type = c("mean", "sum")[1],
-                                    ylabels = bamVarName(df), lib_to_annotation_proportions = c(0.8,0.2),lib_proportions = NULL,
-                                    annotation_proportions = NULL,width = NULL, height = NULL,
+                                    ylabels = bamVarName(df), lib_to_annotation_proportions = c(0.8, 0.2), lib_proportions = NULL,
+                                    annotation_proportions = NULL, width = NULL, height = NULL,
                                     plot_name = "default", plot_title = NULL,
-                                    display_sequence = c("both","nt", "aa", "none")[1], seq_render_dist = 100,
+                                    display_sequence = c("both", "nt", "aa", "none")[1], seq_render_dist = 100,
                                     aa_letter_code = c("one_letter", "three_letters")[1],
                                     annotation_names = NULL, start_codons = "ATG", stop_codons = c("TAA", "TAG", "TGA"),
                                     custom_motif = NULL, log_scale = FALSE, BPPARAM = BiocParallel::SerialParam(),
@@ -180,29 +217,42 @@ genomic_string_to_grl <- function(genomic_string, display_region, max_size = 1e6
   if (input_given) {
     gr <- try(as(unlist(strsplit(genomic_string, ";")), "GRanges"))
     if (is(gr, "GRanges")) {
-      if (any(start(gr) < 1)) stop("Position 1 is minimum position to show on a chromosome! (input ",
-                                   paste(start(gr), collapse = ", "), ")")
+      if (any(start(gr) < 1)) {
+        stop(
+          "Position 1 is minimum position to show on a chromosome! (input ",
+          paste(start(gr), collapse = ", "), ")"
+        )
+      }
 
       suppressWarnings(try(seqlevelsStyle(gr) <- seqlevelsStyle(display_region)[1], silent = TRUE))
 
-      if (any(!(as.character(seqnames(gr)) %in% seqnames(seqinfo(display_region)))))
+      if (any(!(as.character(seqnames(gr)) %in% seqnames(seqinfo(display_region))))) {
         stop("Invalid chromosome selected!")
+      }
       display_region <- GRangesList(Region = gr)
-    } else stop("Malformed genomic ", type, ": format: chr1:39517672-39523668:+;chr1:39527673-39520669:+")
+    } else {
+      stop("Malformed genomic ", type, ": format: chr1:39517672-39523668:+;chr1:39527673-39520669:+")
+    }
   }
   extension_size <- extendLeaders + extendTrailers
   true_sized_grl <- if (!viewMode) {
     display_region
-  }  else {
+  } else {
     if (collapsed_introns_width > 0) {
       print("Collapsing introns")
       display_region <- exonsWithPseudoIntronsPerGroup(display_region, collapsed_introns_width)
-    } else display_region <- flankPerGroup(display_region)
+    } else {
+      display_region <- flankPerGroup(display_region)
+    }
   }
 
   size <- widthPerGroup(true_sized_grl, FALSE)
-  if (size > max_size) stop("Only up to ", round(max_size/1e6, 3) ," million bases can be shown, input: ",
-                            round(size/1e6, 3), " million bases")
+  if (size > max_size) {
+    stop(
+      "Only up to ", round(max_size / 1e6, 3), " million bases can be shown, input: ",
+      round(size / 1e6, 3), " million bases"
+    )
+  }
   return(display_region)
 }
 
@@ -220,18 +270,22 @@ get_zoom_range <- function(zoom_range, display_region, max_size,
         stopifnot(length(zoom_interval) == 2 && zoom_interval[1] <= zoom_interval[2])
         zoom_range <- zoom_interval
       } else if (geomic_coord_interval) {
-        gr <- genomic_string_to_grl(zoom_range, display_region, max_size,
-                                    viewMode, leader_extension, trailer_extension,
-                                    "zoom region")
+        gr <- genomic_string_to_grl(
+          zoom_range, display_region, max_size,
+          viewMode, leader_extension, trailer_extension,
+          "zoom region"
+        )
         display_range_zoom <- display_region
         if (viewMode) {
           display_range_zoom <- flankPerGroup(display_range_zoom)
           gr <- flankPerGroup(gr)
         }
-        if (!is.null(leader_extension) && is.numeric(leader_extension) && leader_extension != 0)
+        if (!is.null(leader_extension) && is.numeric(leader_extension) && leader_extension != 0) {
           display_range_zoom <- extendLeaders(display_range_zoom, leader_extension)
-        if (!is.null(trailer_extension) && is.numeric(trailer_extension) &&  trailer_extension != 0)
+        }
+        if (!is.null(trailer_extension) && is.numeric(trailer_extension) && trailer_extension != 0) {
           display_range_zoom <- extendTrailers(display_range_zoom, trailer_extension)
+        }
         ir <- suppressWarnings(pmapToTranscriptF(gr, display_range_zoom))
         if (as.numeric(width(ir)) > 0) {
           zoom_range <- c(max(as.numeric(start(ir))[1] - zoom_range_flank, 1),
@@ -241,7 +295,7 @@ get_zoom_range <- function(zoom_range, display_region, max_size,
           zoom_range <- numeric(0)
           if (!viewMode) {
             attr(zoom_range, "message") <-
-            "Zoom range not overlapping displayed region, did you mean to use genomic coordinates?"
+              "Zoom range not overlapping displayed region, did you mean to use genomic coordinates?"
           } else {
             attr(zoom_range, "message") <-
               "Zoom range not overlapping displayed region."
@@ -257,15 +311,15 @@ get_zoom_range <- function(zoom_range, display_region, max_size,
 
 browser_plots_highlighted <- function(plots, zoom_range, color = "rgba(255, 255, 102, 0.18)") {
   if (!is.null(zoom_range) && length(zoom_range) == 2) {
-    plots_highlighted <- lapply(plots, function (p) {
+    plots_highlighted <- lapply(plots, function(p) {
       p$x$layout$shapes <- c(
         p$x$layout$shapes,
         list(list(
           type = "rect",
-          yref = "paper",  # "paper" ensures full Y-axis coverage
+          yref = "paper", # "paper" ensures full Y-axis coverage
           x0 = zoom_range[1], x1 = zoom_range[2],
-          y0 = 0, y1 = 1,  # Full height
-          fillcolor = color,  # Light yellow
+          y0 = 0, y1 = 1, # Full height
+          fillcolor = color, # Light yellow
           line = list(width = 0) # Remove border
         ))
       )
@@ -276,29 +330,61 @@ browser_plots_highlighted <- function(plots, zoom_range, color = "rgba(255, 255,
   return(plots)
 }
 
-hash_strings_browser <- function(input, dff, ciw = input$collapsed_introns_width) {
+hash_strings_browser <- function(
+  dff,
+  selectedTx,
+  otherTx,
+  addUorfs,
+  addTranslons,
+  collapsedIntronsWidth,
+  colors,
+  genomicRegion,
+  extendLeaders,
+  extendTrailers,
+  zoomRange,
+  viewMode,
+  withFrames,
+  exportFormat,
+  summaryTrack,
+  summaryTrackType,
+  kmer,
+  framesType,
+  framesSubset,
+  unique_align,
+  customSequence,
+  logScale,
+  phyloP,
+  mapability,
+  expressionPlot
+) {
   full_names <- ORFik:::name_decider(dff, naming = "full")
-  hash_bottom <- paste(input$tx, input$other_tx,
-                       input$add_uorfs,  input$add_translon,
-                       input$extendTrailers, input$extendLeaders,
-                       input$genomic_region, input$viewMode,
-                       ciw, input$colors,
-                       input$customSequence, input$phyloP, input$mapability,
-                       collapse = "|_|")
+  hash_bottom <- paste(selectedTx, otherTx,
+    addUorfs, addTranslons,
+    extendTrailers, extendLeaders,
+    genomicRegion, viewMode,
+    collapsedIntronsWidth, colors,
+    customSequence, phyloP, mapability,
+    collapse = "|_|"
+  )
   # Until plot and coverage is split (bottom must be part of browser hash)
   hash_browser <- paste(hash_bottom,
-                        full_names,
-                        input$plot_export_format,
-                        input$summary_track, input$summary_track_type,
-                        input$kmer, input$frames_type, input$withFrames,
-                        input$log_scale, input$zoom_range, input$frames_subset,
-                        input$unique_align,
-                        collapse = "|_|")
-  hash_expression <- paste(full_names, input$tx,
-                           input$expression_plot, input$extendTrailers,
-                           input$extendLeaders, collapse = "|_|")
-  hash_strings <- list(hash_bottom = hash_bottom, hash_browser = hash_browser,
-                       hash_expression = hash_expression)
+    full_names,
+    exportFormat,
+    summaryTrack, summaryTrackType,
+    kmer, framesType, withFrames,
+    logScale, zoomRange, framesSubset,
+    unique_align,
+    collapse = "|_|"
+  )
+  hash_expression <- paste(full_names, selectedTx,
+    expressionPlot, extendTrailers,
+    extendLeaders,
+    collapse = "|_|"
+  )
+  hash_strings <- list(
+    hash_bottom = hash_bottom, hash_browser = hash_browser,
+    hash_expression = hash_expression
+  )
   stopifnot(all(lengths(hash_strings) == 1))
   return(hash_strings)
 }

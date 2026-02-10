@@ -1,3 +1,43 @@
+# Function to load data
+load_data <- function(species) {
+  df <- read.experiment(species, validate = FALSE)
+  table_path <- file.path(
+    refFolder(df),
+    "predicted_translons",
+    "predicted_translons_with_sequence.fst"
+  )
+  if (file.exists(table_path)) {
+    translon_table <- fst::read_fst(table_path, as.data.table = TRUE)
+    setattr(translon_table, "exp", species)
+  } else {
+    NULL
+  }
+
+  reactiveValues(translon_table = translon_table, df = df)
+}
+
+# Function to load data
+load_data_umap <- function(species, color.by = NULL) {
+  df <- read.experiment(species, validate = FALSE)
+  dir <- file.path(refFolder(df), "UMAP")
+  table_path <- file.path(dir, "UMAP_by_gene_counts.fst")
+  if (file.exists(table_path)) {
+    dt_umap <- fst::read_fst(table_path, as.data.table = TRUE)
+    if (length(color.by) > 1) {
+      dt_umap[, color_column := do.call(paste, c(.SD, sep = " | ")), .SDcols = color.by]
+    } else {
+      dt_umap[, color_column := get(color.by)]
+    }
+
+    setattr(dt_umap, "exp", species)
+    setattr(dt_umap, "color.by", color.by)
+  } else {
+    stop("Species has no computed UMAP, pick another!")
+  }
+
+  dt_umap
+}
+
 # Generalized function to handle download trigger buttons.
 # 'format' should be either "csv" or "xlsx".
 # 'trigger_input' is the name of the visible actionButton (e.g. "trigger_download_csv").
@@ -19,8 +59,10 @@ handle_download_trigger <- function(input, output, current_format, trigger_input
       current_downloads <- downloaded_files()
       if (filename %in% current_downloads) {
         showNotification(
-          paste("You have already downloaded the", ifelse(current_format == "csv", "CSV", "Excel"),
-                "for this dataset!"),
+          paste(
+            "You have already downloaded the", ifelse(current_format == "csv", "CSV", "Excel"),
+            "for this dataset!"
+          ),
           type = "warning"
         )
       } else {
@@ -57,22 +99,40 @@ render_translon_datatable <- function(data, session, add_links = TRUE) {
   ns <- session$ns
   # Add URL
   if (add_links) {
-    host <- getHostFromURL(session) #"https://ribocrypt.org"
+    host <- getHostFromURL(session) # "https://ribocrypt.org"
     exp <- attr(data, "exp")
     # exp <- "all_merged-Homo_sapiens_modalities"
-    symbols <- if(!is.null(data$external_gene_name)) {data$external_gene_name} else NULL
-    gene_ids <- if(!is.null(data$ensembl_gene_id)) {data$ensembl_gene_id} else data$GENE
-    tx_ids <- if(!is.null(data$ensembl_tx_name)) {data$ensembl_tx_name} else data$TX
-    urls <- make_rc_url(symbol = symbols, gene_id = gene_ids, tx_id = tx_ids,
-                        exp = exp,
-                        libraries = NULL, leader_extension = 2000, trailer_extension = 0,
-                        viewMode = FALSE, other_tx = FALSE,
-                        plot_on_start = TRUE, frames_type = "columns", kmer=1,
-                        add_translons = TRUE, zoom_range = data$coordinates,
-                        host = host)
-    data <- cbind(link = paste0('<a href=', urls, ' target=\"_blank\">',
-                                "Translon_", seq(length(urls)), '</a>'),
-                  data)
+    symbols <- if (!is.null(data$external_gene_name)) {
+      data$external_gene_name
+    } else {
+      NULL
+    }
+    gene_ids <- if (!is.null(data$ensembl_gene_id)) {
+      data$ensembl_gene_id
+    } else {
+      data$GENE
+    }
+    tx_ids <- if (!is.null(data$ensembl_tx_name)) {
+      data$ensembl_tx_name
+    } else {
+      data$TX
+    }
+    urls <- make_rc_url(
+      symbol = symbols, gene_id = gene_ids, tx_id = tx_ids,
+      exp = exp,
+      libraries = NULL, leader_extension = 2000, trailer_extension = 0,
+      viewMode = FALSE, other_tx = FALSE,
+      plot_on_start = TRUE, frames_type = "columns", kmer = 1,
+      add_translons = TRUE, zoom_range = data$coordinates,
+      host = host
+    )
+    data <- cbind(
+      link = paste0(
+        "<a href=", urls, ' target=\"_blank\">',
+        "Translon_", seq(length(urls)), "</a>"
+      ),
+      data
+    )
     if ("ID" %in% colnames(data)) {
       data <- cbind(data[, .(link, ID)], data[, !(colnames(data) %in% c("link", "ID")), with = FALSE])
     } else {
@@ -109,7 +169,7 @@ render_translon_datatable <- function(data, session, add_links = TRUE) {
       ),
       # Tag the ID column's cells so we can bind a click handler only there
       columnDefs = list(list(
-        targets = id_target - 1,     # DataTables is 0-based
+        targets = id_target - 1, # DataTables is 0-based
         className = "dt-id"
       ))
     ),

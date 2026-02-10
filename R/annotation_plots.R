@@ -135,6 +135,7 @@ createGeneModelPanel <- function(display_range, annotation, tx_annotation = NULL
     overlaps_custom <- subsetByOverlaps(custom_regions, display_range,
                                         type = overlap_type)
   }
+
   overlaps <- subsetByOverlaps(annotation, display_range,
                                type = overlap_type)
   overlaps_tx <- NULL

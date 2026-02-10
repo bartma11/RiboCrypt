@@ -80,8 +80,8 @@ getCoverageProfile <- function(grl, reads, kmers = 1, kmers_type = "mean") {
 }
 
 getProfileWrapper <- function(display_range, reads, withFrames, kmers = 1, log_scale = FALSE,
-                              kmers_type = "mean", type = "lines", frames_subset = "all") {
-
+                              kmers_type = "mean", type = "lines", frames_subset = "all", normalization = normalizations("metabrowser")[1]) {
+  
   if (withFrames) {
     profile <- getRiboProfile(display_range, reads, kmers, kmers_type = kmers_type)
     if (all(frames_subset != "all")) {
@@ -92,7 +92,9 @@ getProfileWrapper <- function(display_range, reads, withFrames, kmers = 1, log_s
   } else {
     profile <- getCoverageProfile(display_range, reads, kmers, kmers_type = kmers_type)
   }
+
   if (log_scale) profile[, count := log2(count + 1)]
+  
   return(profile)
 }
 
