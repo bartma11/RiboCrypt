@@ -1,0 +1,10 @@
+.git
+.RData
+.Rhistory
+.Rproj.user
+*.Rcheck
+*.tar.gz
+doc
+Meta
+renv
+

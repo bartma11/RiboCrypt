@@ -5,3 +5,7 @@
 ^\.RData
 ^doc$
 ^Meta$
+^Dockerfile$
+^\.dockerignore$
+^CONTAINER_DEMO\.md$
+^scripts$
