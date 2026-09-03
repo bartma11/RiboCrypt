@@ -511,7 +511,10 @@ browser_specific_url_checker <- function(target = c("auto", "browser", "observat
       kickoff <- reactiveVal(FALSE)
       fired <- reactiveVal(FALSE)
       observeEvent(list(input$gene, input$tx, input$library),
-                   go_when_input_is_ready(input, browser_options, fired, kickoff, libs),
+                   go_when_input_is_ready(
+                     input, browser_options, fired, kickoff, libs,
+                     runIDs(isolate(df()))
+                   ),
                    ignoreInit = TRUE, ignoreNULL = TRUE)
 
       user_info <- reactive({
@@ -569,36 +572,33 @@ translon_specific_url_checker <- function() {
 
 
 
-libraries_string_split <- function(value, libs) {
-  value <- strsplit(x = value, ",")[[1]]
-  if (length(value) > 0 && !anyNA(value)) {
-    is_run_ids <- grep("SRR|ERR|DRR", value)
-    l <- libs
-    matches_run <- matches_run_other <- TRUE
-    if (length(is_run_ids) >  0) {
-      print("Convert to ")
-      run_ids <- runIDs(isolate(df()))
-      matches_run <- run_ids %in% value[is_run_ids]
-      matches_run_other <- value %in% run_ids
-    }
+libraries_string_split <- function(value, libs, run_ids = NULL) {
+  value <- strsplit(x = value, ",", fixed = TRUE)[[1]]
+  if (length(value) == 0 || anyNA(value)) return(libs[1])
+  if (length(value) == 1 && value == "all") return(libs)
 
-    if (length(value) == 1 && value == "all") {
-      value <- l
-    } else {
-      matches <- (l %in% value) | matches_run
-      matches_other <- (value %in% l) | matches_run_other
-      if (!all(matches)) {
-        warning("Given libraries from URL are not part of this experiment:", paste(value[!matches_other], collapse = ", "))
-        if (all(!matches_other)) {
-          value <- l[1]
-        } else value <- l[matches]
-      }
+  if (!is.null(run_ids) && length(run_ids) != length(libs)) {
+    stop("Library names and run IDs must have the same length!")
+  }
+
+  resolved <- lapply(value, function(identifier) {
+    if (identifier %in% libs) return(identifier)
+    if (!is.null(run_ids) && identifier %in% run_ids) {
+      return(libs[run_ids == identifier])
     }
-  } else value <- libs[1]
-  if (!all(value %in% libs))
-    stop("You defined libraries to use, but some of those are not valid names,",
-         " in the selected experiment!")
-  return(value)
+    character()
+  })
+  valid <- lengths(resolved) > 0
+  if (!all(valid)) {
+    warning(
+      "Given libraries from URL are not part of this experiment: ",
+      paste(value[!valid], collapse = ", ")
+    )
+  }
+
+  selected <- unique(unlist(resolved[valid], use.names = FALSE))
+  if (length(selected) == 0) return(libs[1])
+  return(selected)
 }
 
 #' Browse a gene on Ribocrypt webpage

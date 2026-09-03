@@ -220,7 +220,8 @@ browser_server <- function(id, all_experiments, env, df, experiments,
 
 #' When input is ready, start ploting if specified.
 #' @noRd
-go_when_input_is_ready <- function(input, browser_options, fired, kickoff, libs) {
+go_when_input_is_ready <- function(input, browser_options, fired, kickoff, libs,
+                                   run_ids = NULL) {
   if (fired()) return()
   if (!isTRUE(as.logical(browser_options[["plot_on_start"]]))) {
     fired(TRUE)
@@ -229,7 +230,9 @@ go_when_input_is_ready <- function(input, browser_options, fired, kickoff, libs)
   if (!nzchar(input$gene) || !nzchar(input$tx)) return()
   if (!identical(input$gene, browser_options[["default_gene"]])) return()
   if (!identical(input$tx,   browser_options[["default_isoform"]])) return()
-  libs_wanted <- libraries_string_split(browser_options[["default_libs"]], isolate(libs()))
+  libs_wanted <- libraries_string_split(
+    browser_options[["default_libs"]], isolate(libs()), run_ids
+  )
   if (!identical(input$library, libs_wanted)) {
     message("Libraries wanted not matching yet!")
     print(libs_wanted)

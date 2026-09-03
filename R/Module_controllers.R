@@ -621,7 +621,11 @@ study_and_gene_observers <- function(input, output, session) {
     }
     if (uses_libs) {
       if (!exists("init_round") && exists("browser_options")) {
-        selected_libs <- libraries_string_split(browser_options["default_libs"], isolate(libs()))
+        selected_libs <- libraries_string_split(
+          browser_options["default_libs"],
+          isolate(libs()),
+          runIDs(isolate(df()))
+        )
         library_update_select_safe(isolate(libs()), selected_libs)
       }
       observeEvent(libs(), library_update_select(libs),

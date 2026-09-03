@@ -251,6 +251,47 @@ test_that("go_when_input_is_ready triggers kickoff when inputs match", {
   expect_true(shiny::isolate(isTRUE(kickoff())))
 })
 
+test_that("run IDs in browser URLs resolve to library names", {
+  libs <- c(
+    "RFP_WT_HEK293_kidney_fdmso_PRJNA727298_r1",
+    "RFP_WT_HEK293_kidney_fdmso_PRJNA727298_r2"
+  )
+  run_ids <- c("SRR14421803", "SRR14421804")
+
+  expect_identical(
+    RiboCrypt:::libraries_string_split("SRR14421803", libs, run_ids),
+    libs[1]
+  )
+  expect_identical(
+    RiboCrypt:::libraries_string_split(
+      paste(libs[1], "SRR14421804", sep = ","), libs, run_ids
+    ),
+    libs
+  )
+
+  browser_options <- c(
+    plot_on_start = "TRUE",
+    default_gene = "ATF4-ENSG00000128272",
+    default_isoform = "ENST00000674920",
+    default_libs = "SRR14421803"
+  )
+  input <- list(
+    gene = "ATF4-ENSG00000128272",
+    tx = "ENST00000674920",
+    library = libs[1]
+  )
+  available_libs <- shiny::reactiveVal(libs)
+  fired <- shiny::reactiveVal(FALSE)
+  kickoff <- shiny::reactiveVal(FALSE)
+
+  shiny::isolate(RiboCrypt:::go_when_input_is_ready(
+    input, browser_options, fired, kickoff, available_libs, run_ids
+  ))
+
+  expect_true(shiny::isolate(isTRUE(fired())))
+  expect_true(shiny::isolate(isTRUE(kickoff())))
+})
+
 test_that("go_when_input_is_ready does not trigger when plot_on_start is FALSE", {
   browser_options <- c(
     plot_on_start = "FALSE",
@@ -297,6 +338,27 @@ test_that("browser selection helpers prefer valid species-specific defaults", {
   expect_equal(
     RiboCrypt:::resolve_tx_selection(gene_name_list, gene = "MISSING", preferred = "TXA1"),
     character()
+  )
+})
+
+test_that("transcript updater dereferences the motif-page gene-list reactive", {
+  gene_names <- data.table::data.table(
+    value = c("ENST00000473358", "ENST00000469289"),
+    label = c("ENSG00000243485", "ENSG00000243485")
+  )
+
+  shiny::testServer(function(input, output, session) {}, {
+    gene_name_list <- shiny::reactiveVal(gene_names)
+    expect_no_error(RiboCrypt:::tx_update_select(
+      "ENSG00000243485", gene_name_list, "all", page = "Heatmap"
+    ))
+  })
+
+  expect_identical(
+    RiboCrypt:::tx_from_gene_list(
+      gene_names, "ENSG00000243485", additionals = "all"
+    ),
+    c("all", "ENST00000473358", "ENST00000469289")
   )
 })
 
@@ -750,6 +812,9 @@ test_that("browser_track_panel_shiny keeps closest hover for frame coverage", {
   }, character(1))
 
   expect_identical(plot$x$layout$hovermode, "closest")
+  expect_identical(plot$x$layout$yaxis$tickmode, "array")
+  expect_length(plot$x$layout$yaxis$tickvals, 3)
+  expect_false(any(plot$x$layout$yaxis$tickvals == 0))
   expect_length(frame_traces, 3)
   expect_true(all(grepl("frame: %\\{fullData.name\\}", frame_hover_templates)))
 })
@@ -874,6 +939,45 @@ test_that("browser_track_panel_shiny keeps zoom_range when a custom bottom track
   ranges <- lapply(xaxis_names, function(axis_name) plot$x$layout[[axis_name]]$range)
 
   expect_true(all(vapply(ranges, function(r) identical(unname(r), c(20, 60)), logical(1))))
+})
+
+test_that("observatory browser uses adaptive ticks for every selection track", {
+  fixture <- make_browser_track_test_fixture(frames_type = "lines", kmers = 1,
+                                             df, tx, cds)
+  controls <- fixture$controls()
+  maxima <- c(97, 173, 7, 1234)
+  controls$library_selections <- stats::setNames(
+    lapply(seq_along(maxima), function(i) paste0("SRR", i)),
+    paste("Group", seq_along(maxima))
+  )
+  controls$profiles <- lapply(seq_along(maxima), function(i) {
+    data.table::data.table(
+      position = rep(1:12, each = 3),
+      count = rep(seq(0, maxima[[i]], length.out = 12), each = 3),
+      frame = factor(rep(0:2, 12))
+    )
+  })
+
+  bottom_panel <- RiboCrypt:::bottom_panel_shiny(function() controls)
+  plot <- RiboCrypt:::observatory_browser_plot(
+    function() controls,
+    bottom_panel,
+    fixture$session
+  )
+  coverage_axes <- lapply(seq_along(maxima), function(i) {
+    plot$x$layout[[if (i == 1L) "yaxis" else paste0("yaxis", i)]]
+  })
+
+  expect_true(all(vapply(
+    coverage_axes,
+    function(axis) identical(axis$tickmode, "array") &&
+      length(axis$tickvals) == 1L && axis$tickvals[[1]] > 0,
+    logical(1)
+  )))
+  expect_equal(
+    vapply(coverage_axes, function(axis) axis$tickvals[[1]], numeric(1)),
+    c(80, 150, 6, 1000)
+  )
 })
 
 test_that("browser x-range helpers prefer zoom and otherwise use full display", {
@@ -1370,6 +1474,256 @@ test_that("browser_legend_cleanup keeps one legend item per shared frame", {
   expect_equal(sort(legend_names[nzchar(legend_names)]), c("0", "1", "2"))
 })
 
+test_that("browser y-axis density and fonts scale with visible library count", {
+  library_counts <- c(1L, 2L, 3L, 4L, 8L, 20L, 40L, 60L)
+
+  expect_identical(
+    vapply(library_counts, RiboCrypt:::browser_y_tick_count, integer(1)),
+    c(3L, 3L, 2L, 1L, 1L, 1L, 1L, 1L)
+  )
+  expect_identical(
+    vapply(library_counts, RiboCrypt:::browser_y_tick_font_size, integer(1)),
+    c(14L, 13L, 13L, 11L, 11L, 9L, 7L, 6L)
+  )
+  expect_identical(
+    vapply(library_counts, RiboCrypt:::browser_y_title_font_size, integer(1)),
+    c(16L, 14L, 12L, 12L, 10L, 9L, 7L, 6L)
+  )
+
+  expect_identical(RiboCrypt:::browser_library_count(integer()), 1L)
+  expect_identical(RiboCrypt:::browser_library_count(NA_integer_), 1L)
+  expect_identical(RiboCrypt:::browser_library_count(0), 1L)
+})
+
+test_that("browser y-axis ticks are explicit, non-zero and near the track maximum", {
+  expect_equal(RiboCrypt:::browser_y_ticks(97, 1)$values, c(30, 60, 90))
+  expect_equal(RiboCrypt:::browser_y_ticks(97, 3)$values, c(40, 80))
+  expect_equal(RiboCrypt:::browser_y_ticks(97, 4)$values, 80)
+  expect_equal(
+    RiboCrypt:::browser_y_ticks(0, 12),
+    list(values = 1, text = "1", range = c(0, 1.08))
+  )
+
+  maxima <- c(1e-6, 0.03, 0.2, 1, 2, 4, 7, 11, 47, 97, 173,
+              999, 1234, 47000, 8e6, 1e12)
+  for (library_count in c(1L, 2L, 3L, 4L, 8L, 20L)) {
+    for (maximum in maxima) {
+      ticks <- RiboCrypt:::browser_y_ticks(maximum, library_count)
+      expect_length(ticks$values, RiboCrypt:::browser_y_tick_count(library_count))
+      expect_true(all(is.finite(ticks$values)))
+      expect_true(all(ticks$values > 0))
+      expect_true(all(diff(ticks$values) > 0))
+      expect_gte(max(ticks$values) / maximum, 0.78)
+      expect_lte(max(ticks$values) / maximum, 1.1)
+      expect_gt(ticks$range[[2]], maximum)
+      expect_gt(ticks$range[[2]], max(ticks$values))
+      expect_false(any(ticks$text == "0" | ticks$text == ""))
+    }
+  }
+})
+
+test_that("integer coverage uses positive integer ticks without losing small ranges", {
+  expect_equal(RiboCrypt:::browser_y_ticks(3, 6, TRUE)$values, 2)
+  expect_equal(RiboCrypt:::browser_y_ticks(0.8, 6, TRUE)$values, 1)
+  expect_equal(RiboCrypt:::browser_y_ticks(3, 1, TRUE)$values, 1:3)
+  expect_equal(RiboCrypt:::browser_y_ticks(2, 1, TRUE)$values, 1:2)
+  expect_equal(RiboCrypt:::browser_y_ticks(3, 6, FALSE)$values, 2.5)
+
+  expect_true(RiboCrypt:::browser_track_has_integer_counts(
+    data.table::data.table(count = c(0, 1, 2, 3))
+  ))
+  expect_false(RiboCrypt:::browser_track_has_integer_counts(
+    data.table::data.table(count = c(0, 0.5, 2, 3))
+  ))
+  expect_false(RiboCrypt:::browser_track_has_integer_counts(
+    data.table::data.table(count = c(NA_real_, Inf))
+  ))
+
+  for (library_count in c(1L, 2L, 3L, 4L, 6L, 20L)) {
+    for (maximum in c(1:20, 97, 1000, 1e12)) {
+      ticks <- RiboCrypt:::browser_y_ticks(
+        maximum, library_count, integer_only = TRUE
+      )
+      expect_length(
+        ticks$values,
+        min(RiboCrypt:::browser_y_tick_count(library_count), maximum)
+      )
+      expect_true(all(ticks$values >= 1))
+      expect_true(all(ticks$values <= maximum))
+      expect_true(all(ticks$values %% 1 == 0))
+      expect_true(all(diff(ticks$values) > 0))
+      expect_gt(ticks$range[[2]], maximum)
+      expect_gt(ticks$range[[2]], max(ticks$values))
+    }
+  }
+})
+
+test_that("browser y-axis labels use compact readable units", {
+  values <- c(8e-7, 0.3, 1200, 1.2e6, 2e9, 3e12)
+  expect_identical(
+    vapply(values, RiboCrypt:::browser_format_y_tick, character(1)),
+    c("8e-7", "0.3", "1.2k", "1.2M", "2B", "3T")
+  )
+})
+
+test_that("browser track maxima match regular and stacked rendering", {
+  profile <- data.table::data.table(
+    position = rep(1:2, each = 3),
+    count = c(10, 20, 30, 4, 5, 6),
+    frame = factor(rep(0:2, 2))
+  )
+
+  expect_equal(RiboCrypt:::browser_track_y_max(profile, "lines"), 30)
+  expect_equal(RiboCrypt:::browser_track_y_max(profile, "stacks"), 60)
+  expect_equal(
+    RiboCrypt:::browser_track_y_max(
+      data.table::data.table(position = 1:2, count = c(NA_real_, Inf)),
+      "lines"
+    ),
+    0
+  )
+})
+
+test_that("coverage plots keep their requested ticks inside a fixed y range", {
+  make_coverage_plot <- function(maximum, total_libs, label = "library") {
+    profile <- data.table::data.table(
+      position = rep(1:12, each = 3),
+      count = rep(seq(0, maximum, length.out = 12), each = 3),
+      frame = factor(rep(0:2, 12))
+    )
+    plotly::plotly_build(RiboCrypt:::createSinglePlot(
+      profile, TRUE, "R", NULL, label, label, numeric(),
+      type = "lines", lib_index = 1, total_libs = total_libs
+    ))
+  }
+
+  expected_tick_counts <- c(`1` = 3L, `2` = 3L, `3` = 2L,
+                            `4` = 1L, `12` = 1L)
+  for (library_count in as.integer(names(expected_tick_counts))) {
+    built <- make_coverage_plot(97, library_count)
+    axis <- built$x$layout$yaxis
+    expect_identical(axis$tickmode, "array")
+    expect_length(axis$tickvals, expected_tick_counts[[as.character(library_count)]])
+    expect_false(any(axis$tickvals == 0))
+    expect_identical(axis$autorange, FALSE)
+    expect_identical(axis$fixedrange, TRUE)
+    expect_identical(axis$showticklabels, TRUE)
+    expect_gt(axis$range[[2]], max(97, axis$tickvals))
+  }
+
+  zero_plot <- make_coverage_plot(0, 4)
+  expect_equal(as.numeric(zero_plot$x$layout$yaxis$tickvals), 1)
+  expect_identical(as.character(zero_plot$x$layout$yaxis$ticktext), "1")
+})
+
+test_that("dense browser axes retain one per-library tick and separated labels", {
+  maxima <- c(97, 173, 7, 1234, 2, 47000, 0.3, 8e6)
+  plots <- lapply(seq_along(maxima), function(i) {
+    profile <- data.table::data.table(
+      position = rep(1:12, each = 3),
+      count = rep(seq(0, maxima[[i]], length.out = 12), each = 3),
+      frame = factor(rep(0:2, 12))
+    )
+    RiboCrypt:::createSinglePlot(
+      profile, TRUE, "R", NULL, i, paste("Library", i), numeric(),
+      type = "lines", lib_index = i, total_libs = length(maxima)
+    )
+  })
+
+  merged <- RiboCrypt:::fast_subplot_shared_x(
+    plots,
+    nrows = length(plots),
+    heights = rep(1 / length(plots), length(plots)),
+    shareX = TRUE,
+    titleY = TRUE,
+    titleX = TRUE
+  )
+  axes <- lapply(seq_along(maxima), function(i) {
+    merged$x$layout[[if (i == 1L) "yaxis" else paste0("yaxis", i)]]
+  })
+
+  expect_true(all(vapply(axes, function(axis) length(axis$tickvals) == 1L,
+                         logical(1))))
+  expect_true(all(vapply(axes, function(axis) axis$tickvals[[1]] > 0,
+                         logical(1))))
+  expect_equal(
+    vapply(axes, function(axis) axis$tickvals[[1]], numeric(1)),
+    c(80, 150, 6, 1000, 2, 40000, 0.25, 8e6)
+  )
+  expect_equal(
+    vapply(merged$x$layout$annotations, `[[`, character(1), "yref"),
+    c("y domain", paste0("y", 2:8, " domain"))
+  )
+  expect_true(all(vapply(
+    merged$x$layout$annotations,
+    function(annotation) annotation$xshift < 0,
+    logical(1)
+  )))
+  expect_equal(
+    unique(vapply(merged$x$layout$annotations, `[[`, numeric(1), "xshift")),
+    -52
+  )
+  expect_equal(
+    unique(vapply(merged$x$layout$annotations, `[[`, numeric(1), "x")),
+    0
+  )
+})
+
+test_that("six-library indexes stay aligned across integer and decimal axes", {
+  counts <- list(
+    c(0, 1, 2, 3),
+    c(0, 0, 1),
+    c(0, 2, 7),
+    c(0, 0.5, 1.5, 3),
+    c(0, 0.2, 0.8),
+    c(0, 0.5, 2.5)
+  )
+  plots <- lapply(seq_along(counts), function(i) {
+    profile <- data.table::data.table(
+      position = seq_along(counts[[i]]),
+      count = counts[[i]]
+    )
+    RiboCrypt:::createSinglePlot(
+      profile, FALSE, "R", NULL, i, paste("Library", i), numeric(),
+      type = "lines", lib_index = i, total_libs = length(counts)
+    )
+  })
+
+  merged <- RiboCrypt:::fast_subplot_shared_x(
+    plots,
+    nrows = length(plots),
+    heights = rep(1 / length(plots), length(plots)),
+    shareX = TRUE,
+    titleY = TRUE,
+    titleX = TRUE
+  )
+  axes <- lapply(seq_along(counts), function(i) {
+    merged$x$layout[[if (i == 1L) "yaxis" else paste0("yaxis", i)]]
+  })
+
+  expect_equal(
+    vapply(axes, function(axis) axis$tickvals[[1]], numeric(1)),
+    c(2, 1, 6, 2.5, 0.8, 2)
+  )
+  expect_true(all(vapply(
+    axes[1:3],
+    function(axis) axis$tickvals[[1]] %% 1 == 0,
+    logical(1)
+  )))
+  expect_identical(
+    vapply(merged$x$layout$annotations, `[[`, numeric(1), "xshift"),
+    rep(-52, 6)
+  )
+  expect_identical(
+    vapply(merged$x$layout$annotations, `[[`, numeric(1), "x"),
+    rep(0, 6)
+  )
+  expect_equal(
+    vapply(merged$x$layout$annotations, `[[`, character(1), "yref"),
+    c("y domain", paste0("y", 2:6, " domain"))
+  )
+})
+
 test_that("createSinglePlot uses native plotly traces for supported track types", {
   profile <- data.table::data.table(
     position = rep(1:4, each = 3),
@@ -1653,6 +2007,10 @@ test_that("getPlotAnimate produces native plotly animation frames", {
 
   expect_s3_class(animate_plot, "plotly")
   expect_equal(length(animate_plot$x$frames), 2)
+  expect_identical(animate_plot$x$layout$yaxis$tickmode, "array")
+  expect_length(animate_plot$x$layout$yaxis$tickvals, 3)
+  expect_false(any(animate_plot$x$layout$yaxis$tickvals == 0))
+  expect_identical(animate_plot$x$layout$yaxis$fixedrange, TRUE)
   expect_true(all(vapply(animate_plot$x$frames[[1]]$data, function(tr) identical(tr$type, "scatter"), logical(1))))
   expect_true(all(vapply(animate_plot$x$frames[[1]]$data, function(tr) any(grepl("%\\{x:\\.0f\\}", tr$hovertemplate)), logical(1))))
 })

@@ -4,13 +4,15 @@ createSinglePlot <- function(profile, withFrames, frame_colors, colors, ylabels,
                              flip_ylabel = type == "heatmap",
                              as_plotly = TRUE,
                              templates = NULL) {
+  y_max <- browser_track_y_max(profile, type)
+  integer_ticks <- browser_track_has_integer_counts(profile)
   profile_plot <- singlePlot_select_plot_type(
     profile, withFrames, frame_colors, colors,
     lines, type, lib_index, templates = templates
   )
   singlePlot_add_theme(
     profile_plot, ylabels, type, flip_ylabel,
-    total_libs, ylabels_full_name, as_plotly
+    total_libs, ylabels_full_name, as_plotly, y_max, integer_ticks
   )
 }
 
@@ -53,18 +55,24 @@ getPlotAnimate <- function(profile, withFrames, colors, frame_colors,
     ))
   }
 
-  y_max <- max(profile$count, na.rm = TRUE)
-  if (!is.finite(y_max) || y_max <= 0) y_max <- 1
+  y_max <- browser_track_y_max(profile, "lines")
+  guide_y_max <- if (y_max > 0) y_max else 1
   plot <- track_guides(
     plot,
     x_range = range(profile$position, na.rm = TRUE),
-    y_max = y_max,
+    y_max = guide_y_max,
     lines = lines,
     add_zero = FALSE,
     line_size = lines_size,
     line_alpha = 0.5
   )
 
+  yaxis <- browser_coverage_yaxis(
+    y_max,
+    total_libs = 1L,
+    title = ylabels,
+    integer_only = browser_track_has_integer_counts(profile)
+  )
   plot <- plot %>%
     plotly::layout(
       xaxis = list(
@@ -73,11 +81,7 @@ getPlotAnimate <- function(profile, withFrames, colors, frame_colors,
         showticklabels = FALSE,
         ticks = ""
       ),
-      yaxis = list(
-        autorange = TRUE,
-        title = list(text = ylabels),
-        zeroline = FALSE
-      ),
+      yaxis = yaxis,
       margin = list(t = 0, r = 0, b = 0, l = 0, pad = 0)
     )
   suppressWarnings(plotly::animation_opts(plot, frame = 80, transition = 0, redraw = FALSE))

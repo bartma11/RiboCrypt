@@ -5,6 +5,37 @@ test_that("get_ratio_interval parses and validates inputs", {
   expect_error(suppressWarnings(RiboCrypt:::get_ratio_interval("a:b")))
 })
 
+test_that("single-position ratio intervals order megabrowser libraries", {
+  metadata <- data.table::data.table(
+    Run = c("SRR1", "SRR2", "SRR3"),
+    BioProject = c("P1", "P1", "P2"),
+    TISSUE = c("brain", "heart", "liver")
+  )
+  table <- matrix(
+    0,
+    nrow = 50,
+    ncol = 3,
+    dimnames = list(NULL, metadata$Run)
+  )
+  table[42, ] <- c(30, 10, 20)
+
+  for (input in c("42", "42:42")) {
+    grouping <- RiboCrypt:::compute_collection_table_grouping(
+      metadata = metadata,
+      df = NULL,
+      metadata_field = "TISSUE",
+      table = table,
+      ratio_interval = RiboCrypt:::get_ratio_interval(input),
+      group_on_tx_tpm = NULL,
+      decreasing_order = FALSE,
+      enrichment_term = "Ratio bins"
+    )
+
+    expect_equal(as.numeric(grouping), c(10, 20, 30))
+    expect_identical(attr(grouping, "meta_order"), c(2L, 3L, 1L))
+  }
+})
+
 test_that("validate_enrichment_term uses Shiny validation for invalid inputs", {
   expect_no_error(
     RiboCrypt:::validate_enrichment_term(

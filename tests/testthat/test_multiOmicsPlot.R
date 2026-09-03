@@ -8,7 +8,10 @@ test_that("multiOmicsPlot_ORFikExp works as intended", {
   reads <- ORFik::filepath(df[1,], "bigwig")[[1]]
   res <- multiOmicsPlot_ORFikExp(display_range = t, df = df[1,], annotation = c, reads = reads)
   # profvis::profvis(multiOmicsPlot_ORFikExp(display_range = t, df = df[1,], annotation = c, reads = reads))
-  expect_false(isTRUE(res$x$layout$yaxis$showticklabels))
+  expect_true(isTRUE(res$x$layout$yaxis$showticklabels))
+  expect_length(res$x$layout$yaxis$tickvals, 3)
+  expect_false(any(res$x$layout$yaxis$tickvals == 0))
+  expect_true(isTRUE(res$x$layout$yaxis$fixedrange))
 })
 
 test_that("single-transcript gene model stays on one layer", {
