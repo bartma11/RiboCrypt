@@ -11,7 +11,7 @@ test_that("multiOmicsPlot_ORFikExp works as intended", {
   expect_true(isTRUE(res$x$layout$yaxis$showticklabels))
   expect_length(res$x$layout$yaxis$tickvals, 3)
   expect_false(any(res$x$layout$yaxis$tickvals == 0))
-  expect_true(isTRUE(res$x$layout$yaxis$fixedrange))
+  expect_identical(res$x$layout$yaxis$fixedrange, FALSE)
 })
 
 test_that("single-transcript gene model stays on one layer", {

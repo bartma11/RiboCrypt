@@ -191,7 +191,7 @@ browser_server <- function(id, all_experiments, env, df, experiments,
 
       # Main plot controller, this code is only run if 'plot' is pressed
       mainPlotControls <- reactive(click_plot_browser_main_controller(input, tx, cds, libs, df, user_info)) %>%
-        bindCache(input_to_list(input, user_info())) %>%
+        bindCache(browser_controller_cache_version(), input_to_list(input, user_info())) %>%
         bindEvent(list(input$go, kickoff()), ignoreInit = TRUE, ignoreNULL = FALSE)
 
       bottom_panel <- reactive(bottom_panel_shiny(mainPlotControls, templates = templates))  %>%
@@ -217,6 +217,13 @@ browser_server <- function(id, all_experiments, env, df, experiments,
     }
   )
 }
+
+#' Cache schema for session-independent browser controller snapshots.
+#'
+#' Including this in the cache key prevents older entries containing
+#' session-owned reactiveValues from being reused after an upgrade.
+#' @noRd
+browser_controller_cache_version <- function() "plain-list-v1"
 
 #' When input is ready, start ploting if specified.
 #' @noRd

@@ -212,6 +212,47 @@ test_that("input_to_list drops ignored inputs and adds user info", {
   expect_false(identical(res, cellphone))
 })
 
+test_that("cached browser controller state is session-independent", {
+  dff <- df[1, ]
+  library_name <- ORFik::bamVarName(dff)[[1]]
+  input <- list(
+    gene = names(tx)[[1]], tx = names(tx)[[1]], other_tx = FALSE,
+    add_uorfs = FALSE, add_translon = FALSE,
+    add_translons_transcode = FALSE,
+    collapsed_introns_width = 0, collapsed_introns = FALSE,
+    genomic_region = "", zoom_range = "", viewMode = FALSE,
+    extendLeaders = 0, extendTrailers = 0, library = library_name,
+    unique_align = FALSE, withFrames = TRUE, frames_subset = "all",
+    colors = "R", customSequence = "", plot_export_format = "svg",
+    summary_track = FALSE, summary_track_type = "lines", kmer = 1,
+    frames_type = "lines", log_scale = FALSE, phyloP = FALSE,
+    mapability = FALSE, expression_plot = FALSE
+  )
+
+  testthat::local_mocked_bindings(
+    controller_init = function(...) Sys.time(),
+    get_track_paths = function(...) list("dummy.bw"),
+    .package = "RiboCrypt"
+  )
+  controls <- shiny::isolate(RiboCrypt:::click_plot_browser_main_controller(
+    input,
+    tx = function() tx,
+    cds = function() cds,
+    libs = function() library_name,
+    df = function() dff,
+    user_info = function() list(is_cellphone = FALSE, width = NULL)
+  ))
+
+  expect_type(controls, "list")
+  expect_false(inherits(controls, "reactivevalues"))
+  expect_type(controls$hash_browser, "character")
+  expect_identical(
+    unserialize(serialize(controls, NULL))$hash_browser,
+    controls$hash_browser
+  )
+  expect_identical(RiboCrypt:::browser_controller_cache_version(), "plain-list-v1")
+})
+
 test_that("browser plot hashes keep cellphone panels out of desktop caches", {
   input <- list(
     tx = names(tx)[1],
@@ -815,6 +856,7 @@ test_that("browser_track_panel_shiny keeps closest hover for frame coverage", {
   expect_identical(plot$x$layout$yaxis$tickmode, "array")
   expect_length(plot$x$layout$yaxis$tickvals, 3)
   expect_false(any(plot$x$layout$yaxis$tickvals == 0))
+  expect_identical(plot$x$layout$yaxis$fixedrange, FALSE)
   expect_length(frame_traces, 3)
   expect_true(all(grepl("frame: %\\{fullData.name\\}", frame_hover_templates)))
 })
@@ -971,7 +1013,8 @@ test_that("observatory browser uses adaptive ticks for every selection track", {
   expect_true(all(vapply(
     coverage_axes,
     function(axis) identical(axis$tickmode, "array") &&
-      length(axis$tickvals) == 1L && axis$tickvals[[1]] > 0,
+      length(axis$tickvals) == 1L && axis$tickvals[[1]] > 0 &&
+      identical(axis$fixedrange, FALSE),
     logical(1)
   )))
   expect_equal(
@@ -1584,7 +1627,7 @@ test_that("browser track maxima match regular and stacked rendering", {
   )
 })
 
-test_that("coverage plots keep their requested ticks inside a fixed y range", {
+test_that("coverage plots keep requested ticks in range and allow y zoom", {
   make_coverage_plot <- function(maximum, total_libs, label = "library") {
     profile <- data.table::data.table(
       position = rep(1:12, each = 3),
@@ -1606,7 +1649,7 @@ test_that("coverage plots keep their requested ticks inside a fixed y range", {
     expect_length(axis$tickvals, expected_tick_counts[[as.character(library_count)]])
     expect_false(any(axis$tickvals == 0))
     expect_identical(axis$autorange, FALSE)
-    expect_identical(axis$fixedrange, TRUE)
+    expect_identical(axis$fixedrange, FALSE)
     expect_identical(axis$showticklabels, TRUE)
     expect_gt(axis$range[[2]], max(97, axis$tickvals))
   }
@@ -2010,7 +2053,7 @@ test_that("getPlotAnimate produces native plotly animation frames", {
   expect_identical(animate_plot$x$layout$yaxis$tickmode, "array")
   expect_length(animate_plot$x$layout$yaxis$tickvals, 3)
   expect_false(any(animate_plot$x$layout$yaxis$tickvals == 0))
-  expect_identical(animate_plot$x$layout$yaxis$fixedrange, TRUE)
+  expect_identical(animate_plot$x$layout$yaxis$fixedrange, FALSE)
   expect_true(all(vapply(animate_plot$x$frames[[1]]$data, function(tr) identical(tr$type, "scatter"), logical(1))))
   expect_true(all(vapply(animate_plot$x$frames[[1]]$data, function(tr) any(grepl("%\\{x:\\.0f\\}", tr$hovertemplate)), logical(1))))
 })

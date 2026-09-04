@@ -95,6 +95,51 @@ test_that("module controller helpers parse events and observatory kickoff state"
   expect_false(RiboCrypt:::observatory_browser_ready_to_kickoff(targeted_state, list(gene = "GENE1", tx = "TX2"), list(A = "SRR1")))
 })
 
+test_that("cached mega-browser controller state is session-independent", {
+  dff <- ORFik::ORFik.template.experiment()[9, ]
+  region <- GenomicRanges::GRangesList(
+    tx = GenomicRanges::GRanges(
+      "chr1", IRanges::IRanges(1, 90), "+"
+    )
+  )
+  input <- list(
+    gene = "GENE", tx = "tx", region_type = "mrna", motif = "",
+    extendLeaders = 0, extendTrailers = 0, display_annot = TRUE,
+    viewMode = FALSE, other_tx = FALSE, collapsed_introns_width = 0,
+    collapsed_introns = FALSE, genomic_region = "", clusters = 1,
+    ratio_interval = "", metadata = "TISSUE", other_gene = "",
+    enrichment_term = "TISSUE", summary_track = FALSE,
+    normalization = "None", kmer = 1, min_count = 0, frame = FALSE,
+    add_translon = FALSE, add_translons_transcode = FALSE,
+    plotType = "plotly", heatmap_color = "default", color_mult = 3
+  )
+
+  testthat::local_mocked_bindings(
+    controller_init = function(...) Sys.time(),
+    subset_tx_by_region = function(...) {
+      list(region = region, cds_annotation = region)
+    },
+    collection_path_from_exp = function(...) "dummy.fst",
+    get_lib_sizes_file = function(...) 1,
+    .package = "RiboCrypt"
+  )
+  controls <- shiny::isolate(RiboCrypt:::click_plot_browser_allsamp_controller(
+    input,
+    df = function() dff,
+    gene_name_list = function() data.table::data.table(),
+    cds = function() region,
+    tx = function() region
+  ))
+
+  expect_type(controls, "list")
+  expect_false(inherits(controls, "reactivevalues"))
+  expect_type(controls$table_hash, "character")
+  expect_identical(
+    unserialize(serialize(controls, NULL))$table_hash,
+    controls$table_hash
+  )
+})
+
 test_that("multiSampleBinRows bins rows as expected", {
   mat <- matrix(1:20, nrow = 10, ncol = 2)
   binned <- RiboCrypt:::multiSampleBinRows(mat, ratio = 3)

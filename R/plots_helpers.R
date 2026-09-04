@@ -732,7 +732,9 @@ browser_coverage_yaxis <- function(y_max, total_libs, title = "",
   list(
     autorange = FALSE,
     range = ticks$range,
-    fixedrange = TRUE,
+    # Keep the deterministic initial range without disabling Plotly's
+    # interactive y-axis zoom.
+    fixedrange = FALSE,
     zeroline = TRUE,
     zerolinecolor = "rgba(0,0,0,0.45)",
     zerolinewidth = 0.75,
