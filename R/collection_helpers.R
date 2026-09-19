@@ -338,7 +338,7 @@ subset_fst_interval_sum <- function(ratio_interval, table) {
   }
   if (ratio_interval[2] > max(nrow(table))) stop("Ratio interval must end on <= max position (i.e. nrow)")
 
-  return(colSums(table[seq.int(ratio_interval[1], ratio_interval[2]), ]))
+  return(colSums(table[seq.int(ratio_interval[1], ratio_interval[2]), , drop = FALSE]))
 }
 
 

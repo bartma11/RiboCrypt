@@ -714,7 +714,6 @@ browser_plot_final_layout_polish <- function(multiomics_plot,
                                              proportions,
                                              apply_line_desimplify = FALSE) {
   display_x_range <- browser_display_x_range(display_range)
-  multiomics_plot <- remove_y_axis_zero_tick_js(multiomics_plot)
   multiomics_plot <- browser_style_xaxes(multiomics_plot)
   multiomics_plot <- browser_apply_legend_layout(multiomics_plot)
   multiomics_plot <- browser_apply_export_options(multiomics_plot, plot_name, display_range, width, height, export.format)

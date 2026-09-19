@@ -5,6 +5,37 @@ test_that("get_ratio_interval parses and validates inputs", {
   expect_error(suppressWarnings(RiboCrypt:::get_ratio_interval("a:b")))
 })
 
+test_that("single-position ratio intervals order megabrowser libraries", {
+  metadata <- data.table::data.table(
+    Run = c("SRR1", "SRR2", "SRR3"),
+    BioProject = c("P1", "P1", "P2"),
+    TISSUE = c("brain", "heart", "liver")
+  )
+  table <- matrix(
+    0,
+    nrow = 50,
+    ncol = 3,
+    dimnames = list(NULL, metadata$Run)
+  )
+  table[42, ] <- c(30, 10, 20)
+
+  for (input in c("42", "42:42")) {
+    grouping <- RiboCrypt:::compute_collection_table_grouping(
+      metadata = metadata,
+      df = NULL,
+      metadata_field = "TISSUE",
+      table = table,
+      ratio_interval = RiboCrypt:::get_ratio_interval(input),
+      group_on_tx_tpm = NULL,
+      decreasing_order = FALSE,
+      enrichment_term = "Ratio bins"
+    )
+
+    expect_equal(as.numeric(grouping), c(10, 20, 30))
+    expect_identical(attr(grouping, "meta_order"), c(2L, 3L, 1L))
+  }
+})
+
 test_that("validate_enrichment_term uses Shiny validation for invalid inputs", {
   expect_no_error(
     RiboCrypt:::validate_enrichment_term(
@@ -62,6 +93,51 @@ test_that("module controller helpers parse events and observatory kickoff state"
   expect_true(RiboCrypt:::observatory_browser_ready_to_kickoff(targeted_state, input, list(A = "SRR1")))
   expect_false(RiboCrypt:::observatory_browser_ready_to_kickoff(targeted_state, list(gene = "GENE2", tx = "TX1"), list(A = "SRR1")))
   expect_false(RiboCrypt:::observatory_browser_ready_to_kickoff(targeted_state, list(gene = "GENE1", tx = "TX2"), list(A = "SRR1")))
+})
+
+test_that("cached mega-browser controller state is session-independent", {
+  dff <- ORFik::ORFik.template.experiment()[9, ]
+  region <- GenomicRanges::GRangesList(
+    tx = GenomicRanges::GRanges(
+      "chr1", IRanges::IRanges(1, 90), "+"
+    )
+  )
+  input <- list(
+    gene = "GENE", tx = "tx", region_type = "mrna", motif = "",
+    extendLeaders = 0, extendTrailers = 0, display_annot = TRUE,
+    viewMode = FALSE, other_tx = FALSE, collapsed_introns_width = 0,
+    collapsed_introns = FALSE, genomic_region = "", clusters = 1,
+    ratio_interval = "", metadata = "TISSUE", other_gene = "",
+    enrichment_term = "TISSUE", summary_track = FALSE,
+    normalization = "None", kmer = 1, min_count = 0, frame = FALSE,
+    add_translon = FALSE, add_translons_transcode = FALSE,
+    plotType = "plotly", heatmap_color = "default", color_mult = 3
+  )
+
+  testthat::local_mocked_bindings(
+    controller_init = function(...) Sys.time(),
+    subset_tx_by_region = function(...) {
+      list(region = region, cds_annotation = region)
+    },
+    collection_path_from_exp = function(...) "dummy.fst",
+    get_lib_sizes_file = function(...) 1,
+    .package = "RiboCrypt"
+  )
+  controls <- shiny::isolate(RiboCrypt:::click_plot_browser_allsamp_controller(
+    input,
+    df = function() dff,
+    gene_name_list = function() data.table::data.table(),
+    cds = function() region,
+    tx = function() region
+  ))
+
+  expect_type(controls, "list")
+  expect_false(inherits(controls, "reactivevalues"))
+  expect_type(controls$table_hash, "character")
+  expect_identical(
+    unserialize(serialize(controls, NULL))$table_hash,
+    controls$table_hash
+  )
 })
 
 test_that("multiSampleBinRows bins rows as expected", {

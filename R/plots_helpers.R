@@ -532,19 +532,255 @@ singlePlot_select_plot_type <- function(profile, withFrames, frame_colors, color
   plot
 }
 
+#' Normalize the number of coverage tracks used for axis styling.
+#' @noRd
+browser_library_count <- function(total_libs) {
+  if (!length(total_libs)) return(1L)
+  count <- suppressWarnings(as.integer(total_libs[[1]]))
+  if (is.na(count) || count < 1L) 1L else count
+}
+
+#' Number of non-zero y-axis labels that fit in a browser coverage track.
+#' @noRd
+browser_y_tick_count <- function(total_libs) {
+  total_libs <- browser_library_count(total_libs)
+  if (total_libs <= 2L) return(3L)
+  if (total_libs == 3L) return(2L)
+  1L
+}
+
+#' Font size for browser coverage y-axis labels.
+#' @noRd
+browser_y_tick_font_size <- function(total_libs) {
+  total_libs <- browser_library_count(total_libs)
+
+  if (total_libs <= 1L) return(14L)
+  if (total_libs <= 3L) return(13L)
+  if (total_libs <= 8L) return(11L)
+  if (total_libs <= 12L) return(10L)
+  if (total_libs <= 20L) return(9L)
+  if (total_libs <= 35L) return(8L)
+  if (total_libs <= 50L) return(7L)
+  6L
+}
+
+#' Font size for browser coverage track names.
+#' @noRd
+browser_y_title_font_size <- function(total_libs) {
+  total_libs <- browser_library_count(total_libs)
+
+  if (total_libs <= 1L) return(16L)
+  if (total_libs <= 2L) return(14L)
+  if (total_libs <= 4L) return(12L)
+  if (total_libs <= 8L) return(10L)
+  if (total_libs <= 20L) return(9L)
+  if (total_libs <= 35L) return(8L)
+  if (total_libs <= 50L) return(7L)
+  6L
+}
+
+#' Find a readable step close to the requested numeric interval.
+#' @noRd
+browser_nice_y_step <- function(target, round_up = FALSE) {
+  if (length(target) != 1L || !is.finite(target) || target <= 0) return(1)
+
+  exponent <- floor(log10(target))
+  multipliers <- c(1, 1.25, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10)
+  candidates <- as.vector(outer(multipliers, 10 ^ ((exponent - 1L):(exponent + 1L))))
+  candidates <- unique(candidates[is.finite(candidates) & candidates > 0])
+  if (isTRUE(round_up)) candidates <- candidates[candidates >= target]
+  distance <- abs(candidates - target)
+
+  # On an exact tie, prefer the value above the target. A slightly generous
+  # scale reads better than a tick that substantially understates the peak.
+  candidates[order(distance, candidates < target, candidates)][[1]]
+}
+
+#' Compact, deterministic labels for browser coverage ticks.
+#' @noRd
+browser_format_y_tick <- function(value) {
+  if (!length(value)) return("")
+  value <- as.numeric(value[[1]])
+  if (!is.finite(value)) return("")
+
+  magnitude <- abs(value)
+  scale <- 1
+  suffix <- ""
+  if (magnitude >= 1e12) {
+    scale <- 1e12
+    suffix <- "T"
+  } else if (magnitude >= 1e9) {
+    scale <- 1e9
+    suffix <- "B"
+  } else if (magnitude >= 1e6) {
+    scale <- 1e6
+    suffix <- "M"
+  } else if (magnitude >= 1e3) {
+    scale <- 1e3
+    suffix <- "k"
+  }
+
+  scaled <- signif(value / scale, 3)
+  if (scale == 1 && abs(scaled) > 0 && abs(scaled) < 1e-3) {
+    label <- format(scaled, scientific = TRUE, trim = TRUE, digits = 3)
+    label <- sub("e([+-])0+", "e\\1", label)
+  } else {
+    label <- format(scaled, scientific = FALSE, trim = TRUE, digits = 3)
+  }
+  if (grepl(".", label, fixed = TRUE)) {
+    label <- sub("0+$", "", label)
+    label <- sub("[.]$", "", label)
+  }
+  paste0(label, suffix)
+}
+
+#' Convert proposed coverage ticks to positive integers where counts require it.
+#' @noRd
+browser_integer_y_ticks <- function(values, y_max, tick_count) {
+  maximum_integer <- max(1, floor(y_max))
+  desired_count <- as.integer(min(tick_count, maximum_integer))
+  values <- sort(unique(pmin(
+    maximum_integer,
+    pmax(1, floor(values))
+  )))
+
+  # Flooring can merge small ticks (for example 0.8, 1.6 and 2.4). Fill the
+  # resulting gaps when the count range contains enough distinct integers.
+  if (length(values) < desired_count) {
+    candidate <- 1
+    while (length(values) < desired_count && candidate <= maximum_integer) {
+      if (!candidate %in% values) values <- c(values, candidate)
+      candidate <- candidate + 1
+    }
+    values <- sort(values)
+  }
+  values
+}
+
+#' Explicit non-zero coverage ticks and a range that always contains them.
+#' @noRd
+browser_y_ticks <- function(y_max, total_libs, integer_only = FALSE) {
+  if (!length(y_max)) y_max <- 0
+  y_max <- suppressWarnings(as.numeric(y_max[[1]]))
+  if (!length(y_max) || !is.finite(y_max) || y_max <= 0) {
+    return(list(values = 1, text = "1", range = c(0, 1.08)))
+  }
+
+  tick_count <- browser_y_tick_count(total_libs)
+  target_fraction <- c(`1` = 0.82, `2` = 0.84, `3` = 0.88)[[as.character(tick_count)]]
+  target_step <- y_max * target_fraction / tick_count
+  step <- browser_nice_y_step(target_step)
+  minimum_step <- y_max * 0.78 / tick_count
+  if (step < minimum_step) {
+    step <- browser_nice_y_step(minimum_step, round_up = TRUE)
+  }
+  values <- signif(seq_len(tick_count) * step, 12)
+  if (isTRUE(integer_only)) {
+    values <- browser_integer_y_ticks(values, y_max, tick_count)
+  }
+  range_top <- max(y_max, values) * 1.08
+
+  list(
+    values = values,
+    text = vapply(values, browser_format_y_tick, character(1)),
+    range = c(0, range_top)
+  )
+}
+
+#' Whether the rendered coverage values can be labelled as integer counts.
+#' @noRd
+browser_track_has_integer_counts <- function(profile) {
+  profile <- data.table::as.data.table(profile)
+  if (!"count" %in% names(profile)) return(FALSE)
+
+  count_values <- suppressWarnings(as.numeric(profile$count))
+  count_values <- count_values[is.finite(count_values)]
+  if (!length(count_values)) return(FALSE)
+
+  tolerance <- sqrt(.Machine$double.eps) * pmax(1, abs(count_values))
+  all(abs(count_values - round(count_values)) <= tolerance)
+}
+
+#' Maximum actually rendered by a browser coverage track.
+#' @noRd
+browser_track_y_max <- function(profile, type) {
+  profile <- data.table::as.data.table(profile)
+  if (!"count" %in% names(profile)) return(0)
+
+  count_values <- suppressWarnings(as.numeric(profile$count))
+  finite <- is.finite(count_values)
+  if (!any(finite)) return(0)
+
+  if (identical(type, "stacks") && "position" %in% names(profile)) {
+    count_values <- as.numeric(rowsum(
+      count_values[finite],
+      group = profile$position[finite],
+      reorder = FALSE
+    ))
+  } else {
+    count_values <- count_values[finite]
+  }
+
+  max(c(0, count_values), na.rm = TRUE)
+}
+
+#' Coverage y-axis shared by the regular and observatory browsers.
+#' @noRd
+browser_coverage_yaxis <- function(y_max, total_libs, title = "",
+                                   integer_only = FALSE) {
+  ticks <- browser_y_ticks(y_max, total_libs, integer_only = integer_only)
+  list(
+    autorange = FALSE,
+    range = ticks$range,
+    # Keep the deterministic initial range without disabling Plotly's
+    # interactive y-axis zoom.
+    fixedrange = FALSE,
+    zeroline = TRUE,
+    zerolinecolor = "rgba(0,0,0,0.45)",
+    zerolinewidth = 0.75,
+    showgrid = TRUE,
+    gridcolor = "rgba(0,0,0,0.10)",
+    gridwidth = 0.5,
+    tickmode = "array",
+    tickvals = ticks$values,
+    ticktext = ticks$text,
+    ticks = "",
+    showticklabels = TRUE,
+    tickfont = list(
+      size = browser_y_tick_font_size(total_libs),
+      color = "#444444"
+    ),
+    title = list(
+      text = title,
+      font = list(size = browser_y_title_font_size(total_libs)),
+      standoff = 8
+    )
+  )
+}
+
 singlePlot_add_theme <- function(profile_plot, ylabels, type,
                                  flip_ylabel = type == "heatmap", total_libs,
-                                 ylabels_full_name = ylabels, as_plotly = TRUE) {
-  y_text_size <- max(22 - total_libs * 3, 2)
+                                 ylabels_full_name = ylabels, as_plotly = TRUE,
+                                 y_max = 0, integer_ticks = FALSE) {
+  total_libs <- browser_library_count(total_libs)
+  y_text_size <- browser_y_title_font_size(total_libs)
   annotation_list <- list()
 
-  yaxis <- list(
-    autorange = TRUE,
-    rangemode = if (type == "heatmap") "normal" else "tozero",
-    zeroline = type != "heatmap",
-    title = list(text = ylabels, font = list(size = y_text_size)),
-    tickfont = list(size = 16)
-  )
+  yaxis <- if (type == "heatmap") {
+    list(
+      autorange = TRUE,
+      rangemode = "normal",
+      zeroline = FALSE,
+      showticklabels = FALSE,
+      ticks = "",
+      title = list(text = "")
+    )
+  } else {
+    browser_coverage_yaxis(
+      y_max, total_libs, ylabels,
+      integer_only = integer_ticks
+    )
+  }
 
   xaxis <- list(
     autorange = FALSE,
@@ -569,35 +805,36 @@ singlePlot_add_theme <- function(profile_plot, ylabels, type,
   }
 
   if (type == "heatmap" || total_libs > 5) {
-    layout_args$yaxis$title <- NULL
-    if (type == "heatmap") {
-      layout_args$yaxis$showticklabels <- FALSE
-      layout_args$yaxis$ticks <- ""
-    } else if (is.numeric(ylabels) || grepl("^[0-9]+$", ylabels)) {
-      layout_args$yaxis$tickmode <- "array"
-      layout_args$yaxis$tickvals <- 0
-      layout_args$yaxis$ticktext <- ""
-    }
+    layout_args$yaxis$title <- list(text = "")
 
     if (flip_ylabel || total_libs > 5) {
-      y_text_size <- ifelse(total_libs < 30, 15, ifelse(total_libs < 50, 10,
-                                                        ifelse(total_libs < 60, 7, 5)))
+      dense_index_label <- total_libs > 5L
+      # Every dense subplot uses the same pixel anchor. In particular, this is
+      # deliberately independent of whether its tick reads "2" or "2.5".
+      annotation_shift <- if (dense_index_label) -52 else -10
+      annotation_characters <- if (dense_index_label) {
+        nchar(as.character(total_libs))
+      } else {
+        nchar(as.character(ylabels))
+      }
+      annotation_width <- annotation_characters * y_text_size * 0.58
+      layout_args$margin$l <- ceiling(min(160, max(45,
+        abs(annotation_shift) + annotation_width + 6
+      )))
       annotation_list <- list(list(
         text = ylabels,
         x = 0,
         y = 0.5,
         xref = "paper",
-        yref = "paper",
+        yref = "y domain",
         xanchor = "right",
         yanchor = "middle",
+        xshift = annotation_shift,
         showarrow = FALSE,
         font = list(size = y_text_size),
         hovertext = ylabels_full_name
       ))
     }
-  } else {
-    layout_args$yaxis$nticks <- 3
-    if (total_libs > 3) layout_args$yaxis$nticks <- 2
   }
 
   if (length(annotation_list) > 0) layout_args$annotations <- annotation_list

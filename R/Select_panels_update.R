@@ -66,7 +66,7 @@ gene_update_select_heatmap <- function(gene_name_list, selected = "all") {
 
 tx_update_select <- function(gene = NULL, gene_name_list, additionals = NULL,
                              selected = NULL, page = "") {
-  tx_update_select_isolated(gene, gene_name_list, additionals, selected, page)
+  tx_update_select_isolated(gene, gene_name_list(), additionals, selected, page)
 }
 
 gene_choices_from_gene_list <- function(gene_name_list) {

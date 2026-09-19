@@ -195,7 +195,7 @@ browser_allsamp_server <- function(id, all_exp, df, experiments,
       plot_type <- "plotly"
       # Main plot controller, this code is only run if 'plot' is pressed
       controller <- reactive(mb_controller_shiny(input, df, gene_name_list, cds, tx)) %>%
-        bindCache(input_to_list(input)) %>%
+        bindCache(browser_controller_cache_version(), input_to_list(input)) %>%
         bindEvent(input$go, ignoreInit = TRUE, ignoreNULL = FALSE)
       # Table
       table <- reactive(compute_collection_table_shiny(controller, metadata = metadata)) %>%

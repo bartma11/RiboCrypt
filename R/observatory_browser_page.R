@@ -201,6 +201,7 @@ observatory_browser_server <- function(
       )
     }) |>
       shiny::bindCache(
+        browser_controller_cache_version(),
         input_to_list(input, cache_user_info),
         observatory_selection_cache_key(
           library_selections(),

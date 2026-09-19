@@ -358,6 +358,20 @@ click_plot_codon_shiny <- function(mainPlotControls, coverage) {
   )
 }
 
+filter_codon_start_stop <- function(dt) {
+  dt <- dt[!grepl("^(#|\\*)", as.character(seqs))]
+  dt[, relative_to_max_score := {
+    max_score <- max(relative_to_max_score, na.rm = TRUE)
+    if (!is.finite(max_score) || max_score == 0) {
+      relative_to_max_score
+    } else {
+      relative_to_max_score / max_score * 100
+    }
+  }, by = .(variable, type)]
+  dt[, seqs := droplevels(seqs)]
+  dt
+}
+
 click_plot_codon <- function(dt, min_ratio_change = 1.7, min_total_N_codons = 100,
                              exclude_start_stop = FALSE, codon_score = "percentage",
                              differential = FALSE, background = NULL,
@@ -371,6 +385,7 @@ click_plot_codon <- function(dt, min_ratio_change = 1.7, min_total_N_codons = 10
     )
     ORFik::diff_exp_codon_plot(dt, min_total_N_codons, only_significant_difexp)
   } else {
+    if (exclude_start_stop) dt <- filter_codon_start_stop(dt)
     ORFik::codon_dotplot(dt, codon_score, min_total_N_codons)
   }
 

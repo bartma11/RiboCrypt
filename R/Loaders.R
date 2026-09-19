@@ -22,31 +22,83 @@ get_track_paths <- function(dff) {
 }
 
 get_track_paths_internal <- function(dff) {
-  reads <- try(filepath(dff, "bigwig", suffix_stem = c("_pshifted", "")), silent = TRUE)
-  invalid_reads <- is(reads, "try-error") ||
-    (!all(file.exists(unlist(reads, use.names = FALSE))) |
-       any(duplicated(unlist(reads, use.names = FALSE))))
-  if (invalid_reads) {
-    reads <- filepath(dff, "bigwig", suffix_stem = c("_pshifted", ""),
-                      base_folders = libFolder(dff, "all"))
+  get_library_paths_internal(dff, "bigwig")
+}
+
+#' Check that one distinct set of files was found for every library.
+#' @noRd
+library_paths_are_valid <- function(paths, expected_libraries) {
+  if (inherits(paths, "try-error") || length(paths) != expected_libraries) {
+    return(FALSE)
   }
-  return(reads)
+  flat_paths <- unlist(paths, use.names = FALSE)
+  length(flat_paths) >= expected_libraries &&
+    all(nzchar(flat_paths)) &&
+    all(file.exists(flat_paths)) &&
+    !anyDuplicated(flat_paths)
+}
+
+#' Resolve derived library files across ordinary and collection experiments.
+#' @noRd
+get_library_paths_internal <- function(dff, read_type,
+                                       suffix_stem = c("_pshifted", "")) {
+  paths <- try(
+    filepath(dff, read_type, suffix_stem = suffix_stem),
+    silent = TRUE
+  )
+  if (library_paths_are_valid(paths, nrow(dff))) return(paths)
+
+  # ORFik::filepath() normally uses the first library folder for every row.
+  # Collections can contain rows from several study folders, so retry with
+  # the folder belonging to each individual library.
+  paths <- filepath(
+    dff,
+    read_type,
+    suffix_stem = suffix_stem,
+    base_folders = libFolder(dff, "all")
+  )
+  if (!library_paths_are_valid(paths, nrow(dff))) {
+    stop("Could not resolve distinct ", read_type,
+         " files for every selected library.", call. = FALSE)
+  }
+  paths
+}
+
+#' Resolve covRle files, including experiments spanning multiple folders.
+#' @noRd
+get_covRle_paths_internal <- function(dff) {
+  get_library_paths_internal(dff, "cov")
+}
+
+#' Resolve covRleList files, including experiments spanning multiple folders.
+#' @noRd
+get_covRleList_paths_internal <- function(dff) {
+  get_library_paths_internal(dff, "covl")
+}
+
+#' Resolve p-shifted files, including fallback from unavailable coverage files.
+#' @noRd
+get_pshifted_paths_internal <- function(dff) {
+  get_library_paths_internal(dff, "pshifted")
 }
 
 load_reads <- function(dff, prefered_read_type, validate_libs = FALSE,
                        BPPARAM = BiocParallel::SerialParam()) {
-  pref_dir <- if (prefered_read_type == "cov") {
-    "cov_RLE"
-  } else if (prefered_read_type == "covl") {
-    "cov_RLE_List"
-  } else stop("Only cov and covRLE supported safely at the moment!")
-  read_type <- ifelse(dir.exists(file.path(libFolder(dff), pref_dir)), prefered_read_type,
-                      "pshifted")
+  preferred_path_loader <- switch(
+    prefered_read_type,
+    cov = get_covRle_paths_internal,
+    covl = get_covRleList_paths_internal,
+    stop("Only covRle ('cov') and covRleList ('covl') are supported.")
+  )
+  paths <- try(preferred_path_loader(dff), silent = TRUE)
+  preferred_available <- !inherits(paths, "try-error")
+  read_type <- if (preferred_available) prefered_read_type else "pshifted"
+  if (!preferred_available) paths <- get_pshifted_paths_internal(dff)
+
   message("Using read type: ", read_type)
-  paths <- filepath(dff, read_type, suffix_stem = c("_pshifted", ""))
   if (length(paths) > 0) {
     message("First file to load is:")
-    paths[1]
+    message(unlist(paths, use.names = FALSE)[[1]])
   }
 
   force(
@@ -60,6 +112,62 @@ load_reads <- function(dff, prefered_read_type, validate_libs = FALSE,
       BPPARAM = BPPARAM
     )
   )
+}
+
+#' Load covRle coverage with collection-aware path resolution.
+#' @noRd
+load_covRle <- function(dff, validate_libs = FALSE,
+                        BPPARAM = BiocParallel::SerialParam()) {
+  load_reads(dff, "cov", validate_libs = validate_libs, BPPARAM = BPPARAM)
+}
+
+#' Load covRleList coverage with collection-aware path resolution.
+#' @noRd
+load_covRleList <- function(dff, validate_libs = FALSE,
+                            BPPARAM = BiocParallel::SerialParam()) {
+  load_reads(dff, "covl", validate_libs = validate_libs, BPPARAM = BPPARAM)
+}
+
+#' Load the shift table belonging to one selected collection library.
+#' @noRd
+load_library_shift_table <- function(dff) {
+  if (nrow(dff) != 1L) {
+    stop("A single selected library is required to load its shift table.")
+  }
+
+  shift_path <- file.path(
+    libFolder(dff, "all"), "pshifted", "shifting_table.rds"
+  )
+  if (!file.exists(shift_path)) {
+    warning("Shift table not found for the selected library.")
+    return(data.table::data.table())
+  }
+
+  shifts <- shifts_load(dff, path = shift_path)
+  if (!is.list(shifts) || !length(shifts)) {
+    warning("The selected library's shift table is empty or malformed.")
+    return(data.table::data.table())
+  }
+
+  shift_names <- names(shifts)
+  selected_stem <- orfik_remove_file_ext(basename(dff$filepath[[1]]))
+  shift_stems <- orfik_remove_file_ext(basename(shift_names))
+  matching_shift <- which(shift_stems == selected_stem)
+  unnamed_single <- length(shifts) == 1L &&
+    (is.null(shift_names) || is.na(shift_names[[1]]) || !nzchar(shift_names[[1]]))
+  if (!length(matching_shift) && unnamed_single) matching_shift <- 1L
+  if (length(matching_shift) != 1L) {
+    warning("Could not match the selected library to its study shift table.")
+    return(data.table::data.table())
+  }
+
+  shift_table <- data.table::as.data.table(shifts[[matching_shift]])
+  required_columns <- c("fraction", "offsets_start")
+  if (!all(required_columns %in% names(shift_table))) {
+    warning("The selected library's shift table is malformed.")
+    return(data.table::data.table())
+  }
+  shift_table
 }
 
 load_custom_regions <- function(useCustomRegions, df) {

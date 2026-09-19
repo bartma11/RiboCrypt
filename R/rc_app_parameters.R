@@ -189,7 +189,9 @@ rc_parameter_setup <- function() {
     if (!isTruthy(browser_options["default_libs"])) {
       browser_options["default_libs"] <- libs[1]
     } else {
-      default_libs <- libraries_string_split(browser_options["default_libs"], libs)
+      default_libs <- libraries_string_split(
+        browser_options["default_libs"], libs, runIDs(exp_init)
+      )
     }
 
     cat("Done (Parameter setup):"); print(round(Sys.time() - time_before, 2))

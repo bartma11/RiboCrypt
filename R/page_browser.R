@@ -191,7 +191,7 @@ browser_server <- function(id, all_experiments, env, df, experiments,
 
       # Main plot controller, this code is only run if 'plot' is pressed
       mainPlotControls <- reactive(click_plot_browser_main_controller(input, tx, cds, libs, df, user_info)) %>%
-        bindCache(input_to_list(input, user_info())) %>%
+        bindCache(browser_controller_cache_version(), input_to_list(input, user_info())) %>%
         bindEvent(list(input$go, kickoff()), ignoreInit = TRUE, ignoreNULL = FALSE)
 
       bottom_panel <- reactive(bottom_panel_shiny(mainPlotControls, templates = templates))  %>%
@@ -218,9 +218,17 @@ browser_server <- function(id, all_experiments, env, df, experiments,
   )
 }
 
+#' Cache schema for session-independent browser controller snapshots.
+#'
+#' Including this in the cache key prevents older entries containing
+#' session-owned reactiveValues from being reused after an upgrade.
+#' @noRd
+browser_controller_cache_version <- function() "plain-list-v1"
+
 #' When input is ready, start ploting if specified.
 #' @noRd
-go_when_input_is_ready <- function(input, browser_options, fired, kickoff, libs) {
+go_when_input_is_ready <- function(input, browser_options, fired, kickoff, libs,
+                                   run_ids = NULL) {
   if (fired()) return()
   if (!isTRUE(as.logical(browser_options[["plot_on_start"]]))) {
     fired(TRUE)
@@ -229,7 +237,9 @@ go_when_input_is_ready <- function(input, browser_options, fired, kickoff, libs)
   if (!nzchar(input$gene) || !nzchar(input$tx)) return()
   if (!identical(input$gene, browser_options[["default_gene"]])) return()
   if (!identical(input$tx,   browser_options[["default_isoform"]])) return()
-  libs_wanted <- libraries_string_split(browser_options[["default_libs"]], isolate(libs()))
+  libs_wanted <- libraries_string_split(
+    browser_options[["default_libs"]], isolate(libs()), run_ids
+  )
   if (!identical(input$library, libs_wanted)) {
     message("Libraries wanted not matching yet!")
     print(libs_wanted)

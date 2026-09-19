@@ -163,7 +163,9 @@ click_plot_browser_main_controller <- function(input, tx, cds, libs, df, user_in
     colors <- NULL
 
     timer_done_nice_print("-- Browser controller done: ", time_before)
-    reactiveValues(dff = dff,
+    # This snapshot is cached at app scope by the regular and observatory
+    # browsers. It must not contain session-owned reactiveValues.
+    list(dff = dff,
                    display_region = display_region,
                    customRegions = customRegions,
                    extendTrailers = input$extendTrailers,
@@ -300,7 +302,8 @@ click_plot_browser_allsamp_controller <- function(input, df, gene_name_list, cds
                              isolate(input$color_mult), sep = "|_|")
 
     timer_done_nice_print("-- Mega Browser controller done: ", time_before)
-    reactiveValues(dff = dff,
+    # The mega-browser controller is cached across sessions as well.
+    list(dff = dff,
                    id = id,
                    display_region = display_region,
                    tx_annotation = tx_annotation,
@@ -395,17 +398,17 @@ click_plot_heatmap_main_controller <- function(input, tx, cds, libs, df,
   dff <- observed_exp_subset(isolate(input$library), libs, df)
 
   additional_extension <- 0
-  shift_path <- file.path(ORFik::libFolder(df()), "pshifted", "shifting_table.rds")
-  if (file.exists(shift_path)) {
-    shift_table <- shifts_load(df())
-    shift_table <- shift_table[[which(isolate(libs()) == isolate(input$library))]]
-    shift_table <- shift_table[fraction %between% c(input$readlength_min, input$readlength_max)]
-    if (!is.null(input$p_shifted)) {
-      if (!input$p_shifted) additional_extension <- max(abs(shift_table$offsets_start))
+  shift_table <- data.table()
+  if (!is.null(input$p_shifted)) {
+    shift_table <- load_library_shift_table(dff)
+    if (nrow(shift_table) > 0) {
+      shift_table <- shift_table[
+        fraction %between% c(input$readlength_min, input$readlength_max)
+      ]
+      if (!input$p_shifted && nrow(shift_table) > 0) {
+        additional_extension <- max(abs(shift_table$offsets_start))
+      }
     }
-  } else {
-    warning("Shift table not found!")
-    shift_table <- data.table()
   }
 
   hash_string_anchor <-  paste(input$extendLeaders + additional_extension,
@@ -419,7 +422,7 @@ click_plot_heatmap_main_controller <- function(input, tx, cds, libs, df,
                        input$readlength_max, sep = "|__|")
 
   time_before <- Sys.time()
-  reads <- load_reads(dff, "covl")
+  reads <- load_covRleList(dff)
 
   cat("Library loading: "); print(round(Sys.time() - time_before, 2))
   message("-- Data loading complete")
@@ -453,7 +456,7 @@ click_plot_codon_main_controller <- function(input, tx, cds, libs, df, length_ta
   dff <- observed_exp_subset(all_libs, libs, df)
 
   time_before <- Sys.time()
-  reads <- load_reads(dff, "cov")
+  reads <- load_covRle(dff)
   names <- orfik_name_decider(dff, "full")
   names(reads) <- names
 
