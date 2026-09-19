@@ -1,0 +1,15 @@
+services:
+  ribocrypt-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: ribocrypt-dev
+    ports:
+      - "3838:3838"
+    volumes:
+      - .:/workspace/RiboCrypt
+      - ribocrypt-dev-data:/home/rstudio/Bio_data
+    restart: unless-stopped
+
+volumes:
+  ribocrypt-dev-data:
