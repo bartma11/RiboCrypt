@@ -6,7 +6,7 @@ experiment_file <- file.path(experiment_dir, paste0(experiment_name, ".csv"))
 
 if (!file.exists(experiment_file)) {
   stop(
-    "Demo data is not prepared. Run scripts/prepare_demo_data.R first.",
+    "Demo data is not prepared. Run scripts/prepare_dev_data.R first.",
     call. = FALSE
   )
 }

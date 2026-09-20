@@ -15,7 +15,7 @@ Run commands from the repository root:
 - `R CMD build .` creates the source package archive.
 - `R CMD check --no-manual RiboCrypt_*.tar.gz` performs the package-level validation expected before review.
 - `docker compose -f compose.dev.yml build` builds the Docker development image.
-- `docker compose -f compose.dev.yml run --rm ribocrypt-dev Rscript scripts/prepare_demo_data.R` prepares the persistent demo-data volume on first use.
+- `docker compose -f compose.dev.yml run --rm ribocrypt-dev Rscript scripts/prepare_dev_data.R` prepares the persistent demo data and index on first use.
 - `docker compose -f compose.dev.yml up -d` starts the development app at `http://localhost:3838`; use `docker compose -f compose.dev.yml logs -f ribocrypt-dev` to follow its logs and `docker compose -f compose.dev.yml stop` to stop it while retaining the container and demo data.
 
 `Rscript run_dev.R` starts the development app, but its dataset paths are workstation-specific; adjust them locally and do not commit personal paths.

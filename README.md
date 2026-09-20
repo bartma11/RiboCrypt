@@ -51,13 +51,21 @@ Build the development image from the repository root:
 docker compose -f compose.dev.yml build
 ```
 
-Prepare the bundled ORFik demo data once. The data is stored in a named Docker
-volume and reused on subsequent starts:
+Create the host data directory, then prepare the bundled ORFik demo data and
+its SQLite experiment index once. The directory is bind-mounted into the
+container and reused on subsequent starts:
 
 ```bash
+mkdir -p dev-data
 docker compose -f compose.dev.yml run --rm ribocrypt-dev \
-  Rscript scripts/prepare_demo_data.R
+  Rscript scripts/prepare_dev_data.R
 ```
+
+The generated index is directly accessible on the host at
+`dev-data/RiboCrypt_demo/ribocrypt-demo.sqlite`. The rest of `dev-data/` is
+also retained on the host so that all indexed demo libraries and references
+remain available. Asset paths beginning with `/home/rstudio/Bio_data` inside
+the index correspond to the repository's `dev-data/` directory on the host.
 
 Start the application in the background and open
 [http://localhost:3838](http://localhost:3838):
@@ -84,15 +92,9 @@ docker compose -f compose.dev.yml stop
 docker compose -f compose.dev.yml start
 ```
 
-To remove the container and network while retaining the prepared demo data,
-run:
+Removing the container and network does not remove the host-side `dev-data/`
+directory:
 
 ```bash
 docker compose -f compose.dev.yml down
-```
-
-Add `-v` only when you also want to delete the named demo-data volume:
-
-```bash
-docker compose -f compose.dev.yml down -v
 ```

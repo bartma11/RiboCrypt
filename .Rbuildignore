@@ -10,3 +10,4 @@
 ^compose\.dev\.yml$
 ^app_dev\.R$
 ^scripts$
+^dev-data$
