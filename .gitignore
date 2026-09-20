@@ -13,3 +13,4 @@ renv/
 dominant_cell_states/
 *.Rcheck/
 /RiboCrypt_*.tar.gz
+/dev-data/
